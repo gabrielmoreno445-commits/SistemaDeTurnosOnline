@@ -1,0 +1,15 @@
+backend/.env
+**/.env
+!**/.env.example
+
+**/node_modules/
+**/.vite/
+**/.astro/
+
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db
+
+*.log
+npm-debug.log*

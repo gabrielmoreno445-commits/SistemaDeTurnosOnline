@@ -1,0 +1,124 @@
+---
+// layouts/Layout.astro
+// Layout base del sitio publico. Lo usan todas las paginas .astro.
+// Importa el sistema de diseno CSS y define la estructura comun del HTML.
+// Props: title (string), usado para la etiqueta <title> del documento.
+
+import '../styles/global.css';
+
+const { title = 'Sistema de Turnos Online' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+    <script is:inline>
+      const tema = localStorage.getItem('tema') || 'light';
+      document.documentElement.setAttribute('data-theme', tema);
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="shell">
+        <a href="/" class="brand">Sistema de Turnos Online</a>
+        <button id="theme-toggle" class="theme-toggle btn" type="button">🌙</button>
+      </div>
+    </header>
+
+    <main class="site-main">
+      <div class="shell">
+        <slot />
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell">
+        <p>Reservas simples para profesionales independientes.</p>
+      </div>
+    </footer>
+    <script is:inline>
+      const actualizarTextoTema = (btn, temaActual) => {
+        btn.textContent = temaActual === 'dark' ? '☀️' : '🌙';
+      };
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('theme-toggle');
+
+        if (!btn) {
+          return;
+        }
+
+        actualizarTextoTema(btn, document.documentElement.getAttribute('data-theme') || 'light');
+
+        btn.addEventListener('click', () => {
+          const actual = document.documentElement.getAttribute('data-theme');
+          const nuevo = actual === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', nuevo);
+          localStorage.setItem('tema', nuevo);
+          actualizarTextoTema(btn, nuevo);
+        });
+      });
+    </script>
+  </body>
+</html>
+
+<style>
+  .shell {
+    width: min(100% - 32px, 1100px);
+    margin: 0 auto;
+  }
+
+  .site-header {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-card);
+  }
+
+  .site-header .shell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .brand {
+    display: inline-block;
+    padding: 20px 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .site-main {
+    padding: 40px 0 56px;
+  }
+
+  .site-footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+  }
+
+  .site-footer .shell {
+    padding: 20px 0;
+  }
+
+  .theme-toggle {
+    min-width: 44px;
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-size: 1rem;
+    line-height: 1;
+  }
+</style>

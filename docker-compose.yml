@@ -1,0 +1,66 @@
+version: '3.9'
+
+services:
+  db:
+    image: mysql:8
+    container_name: sistema-turnos-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: turnos_db
+      MYSQL_USER: turnos_user
+      MYSQL_PASSWORD: turnos_password
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-uroot', '-proot_password']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  backend:
+    build: ./backend
+    container_name: sistema-turnos-backend
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: turnos_user
+      DB_PASSWORD: turnos_password
+      DB_NAME: turnos_db
+      JWT_SECRET: clave_secreta_cambiar_en_produccion
+    ports:
+      - '4000:4000'
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
+
+  panel-admin:
+    build: ./panel-admin
+    container_name: sistema-turnos-panel-admin
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./panel-admin:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+
+  sitio-publico:
+    build: ./sitio-publico
+    container_name: sistema-turnos-sitio-publico
+    ports:
+      - '4321:4321'
+    volumes:
+      - ./sitio-publico:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+
+volumes:
+  mysql_data:
