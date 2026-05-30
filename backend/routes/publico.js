@@ -14,7 +14,7 @@ const router = express.Router();
 // Evita filtrar informacion sensible del panel hacia el sitio abierto.
 async function obtenerProfesionalPublicoPorSlug(slug) {
   const [rows] = await pool.query(
-    `SELECT id, nombre, especialidad, slug, descripcion, direccion
+    `SELECT id, nombre, especialidad, slug, descripcion, direccion, foto_url
      FROM profesionales
      WHERE slug = ?
      LIMIT 1`,

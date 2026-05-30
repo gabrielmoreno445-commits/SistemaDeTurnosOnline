@@ -2,9 +2,8 @@
 // Funciones de comunicacion con el backend para autenticacion.
 // Todas las funciones son async y lanzan el error si la respuesta no es ok,
 // para que el store o el componente llamador decida como mostrarlo al usuario.
-// URL base del backend: http://localhost:4000
 
-const API_URL = 'http://localhost:4000';
+import { API_URL } from '../utils/api.js';
 
 // Ejecuta una llamada al backend de autenticacion y centraliza el parseo JSON.
 // Recibe la ruta y la configuracion fetch para evitar duplicar codigo en cada operacion.

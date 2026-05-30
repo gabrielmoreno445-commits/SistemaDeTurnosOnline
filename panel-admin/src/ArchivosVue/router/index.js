@@ -42,6 +42,11 @@ const router = createRouter({
       meta: { requiereAuth: true }
     },
     {
+      path: '/onboarding',
+      component: () => import('../pages/OnboardingPage.vue'),
+      meta: { requiereAuth: true, esOnboarding: true }
+    },
+    {
       path: '/metricas',
       component: () => import('../pages/MetricasPage.vue'),
       meta: { requiereAuth: true }
@@ -50,9 +55,9 @@ const router = createRouter({
 });
 
 // Guardia de navegacion global.
-// Antes de cada cambio de ruta verifica si el profesional esta logueado.
-// Si detecta un token persistido pero el store aun no esta hidratado, intenta
-// restaurar la sesion antes de decidir la redireccion para soportar recargas.
+// Primero restaura/verifica sesion; despues consulta onboarding una vez por sesion.
+// Si el wizard no esta completo, fuerza /onboarding para que el panel no se use
+// sin perfil, servicios y horarios minimos configurados.
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
   const esRutaPublicaDeAuth = to.path === '/login' || to.path === '/register';
@@ -64,6 +69,23 @@ router.beforeEach(async (to, from, next) => {
 
   if (to.meta.requiereAuth && !authStore.estaLogueado) {
     return next('/login');
+  }
+
+  if (authStore.estaLogueado && !esRutaPublicaDeAuth) {
+    try {
+      await authStore.verificarOnboarding(authStore.token);
+    } catch (error) {
+      authStore.logout();
+      return next('/login');
+    }
+
+    if (!authStore.onboardingCompletado && !to.meta.esOnboarding) {
+      return next('/onboarding');
+    }
+
+    if (authStore.onboardingCompletado && to.meta.esOnboarding) {
+      return next('/');
+    }
   }
 
   if (esRutaPublicaDeAuth && authStore.estaLogueado) {

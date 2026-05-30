@@ -1,13 +1,11 @@
 ---
 // pages/[slug].astro
 // Pagina publica de cada profesional. La ruta dinamica [slug] permite
-// que cada profesional tenga su propia URL: tudominio.com/maria-garcia
+// que cada profesional tenga su propia URL: tudominio.com/maria-garcia.
 //
-// Flujo de esta primera version:
-// 1. Astro obtiene el slug desde la URL
-// 2. Consulta el backend desde el servidor usando el nombre del servicio Docker
-// 3. Si el slug no existe o la API falla, redirige a 404
-// 4. Renderiza nombre y especialidad en HTML estatico
+// Astro consulta el backend desde el servidor usando el nombre del servicio Docker.
+// Si el slug no existe o la API falla, redirige a 404 para no mostrar una ficha incompleta.
+// Renderiza una carta de presentacion estatica y monta FormReserva como isla Vue.
 
 import Layout from '../layouts/Layout.astro';
 import FormReserva from '../vue-components/FormReserva.vue';
@@ -15,11 +13,13 @@ import FormReserva from '../vue-components/FormReserva.vue';
 export const prerender = false;
 
 const { slug } = Astro.params;
+const API_URL = import.meta.env.API_URL || 'http://backend:4000';
+const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:4000';
 
 let profesional = null;
 
 try {
-  const res = await fetch(`http://backend:4000/publico/${slug}`);
+  const res = await fetch(`${API_URL}/publico/${slug}`);
 
   if (!res.ok) {
     return Astro.redirect('/404');
@@ -34,17 +34,36 @@ try {
 <Layout title={`${profesional.nombre} | Sistema de Turnos Online`}>
   <section class="pagina-profesional">
     <div class="profile-card card animate-in">
-    <p class="eyebrow">Perfil publico</p>
-    <h1>{profesional.nombre}</h1>
-    <p class="specialty">{profesional.especialidad || 'Especialidad no informada'}</p>
-    {profesional.descripcion && (
-      <p class="profesional-descripcion">{profesional.descripcion}</p>
-    )}
-    {profesional.direccion && (
-      <p class="profesional-direccion">📍 {profesional.direccion}</p>
-    )}
-    <hr />
-    <FormReserva client:load slug={slug} />
+      <div class="profesional-header">
+        {profesional.foto_url && (
+          <img
+            src={`${PUBLIC_API_URL}${profesional.foto_url}`}
+            alt={`Foto de ${profesional.nombre}`}
+            class="foto-perfil"
+          />
+        )}
+
+        <div class="profesional-info">
+          <p class="eyebrow">Perfil publico</p>
+          <h1 class="profesional-nombre">{profesional.nombre}</h1>
+          <p class="profesional-especialidad">
+            {profesional.especialidad || 'Especialidad no informada'}
+          </p>
+
+          {profesional.descripcion && (
+            <p class="profesional-descripcion">{profesional.descripcion}</p>
+          )}
+
+          {profesional.direccion && (
+            <p class="profesional-direccion">
+              <span class="icono">Ubicacion:</span> {profesional.direccion}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <hr />
+      <FormReserva client:load slug={slug} />
     </div>
   </section>
 </Layout>
@@ -64,8 +83,32 @@ try {
     box-shadow: var(--shadow-sm);
   }
 
+  .profesional-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem 1rem;
+    gap: 1rem;
+  }
+
+  .foto-perfil {
+    width: 100px;
+    height: 100px;
+    display: block;
+    margin: 0 auto 1rem;
+    border: 3px solid var(--border);
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .profesional-info {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+  }
+
   .eyebrow {
-    margin-bottom: 10px;
     color: var(--color-primary);
     font-size: 0.9rem;
     font-weight: 700;
@@ -73,27 +116,32 @@ try {
     letter-spacing: 0.08em;
   }
 
-  h1 {
-    margin-bottom: 10px;
-    font-size: clamp(2rem, 5vw, 3rem);
-    line-height: 1.05;
-  }
-
-  .specialty {
-    margin-bottom: 14px;
-    color: var(--text-secondary);
-    font-size: 1.1rem;
-  }
-
-  .profesional-descripcion,
-  .profesional-direccion {
-    margin: 0 0 10px;
-    color: var(--text-secondary);
-  }
-
-  .profesional-direccion {
-    font-weight: 600;
+  .profesional-nombre {
     color: var(--text-primary);
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .profesional-especialidad {
+    color: var(--color-primary);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .profesional-descripcion {
+    max-width: 500px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .profesional-direccion {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .icono {
+    font-weight: 700;
   }
 
   hr {

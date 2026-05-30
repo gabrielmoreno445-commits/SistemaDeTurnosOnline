@@ -2,9 +2,8 @@
 // Funciones de comunicacion con el backend para gestion de servicios.
 // Todas requieren token JWT porque solo el profesional autenticado
 // puede administrar su propio catalogo desde el panel admin.
-// URL base: http://localhost:4000
 
-const API_URL = 'http://localhost:4000';
+import { API_URL } from '../utils/api.js';
 
 // Ejecuta una request autenticada y centraliza el manejo de errores del backend.
 // Recibe ruta, token y opciones para no repetir configuracion en cada operacion.

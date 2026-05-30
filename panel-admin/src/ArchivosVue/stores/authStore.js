@@ -10,11 +10,14 @@ import {
   loginProfesional,
   obtenerProfesionalActual
 } from '../../ArchivosJS/api/auth.js';
+import { obtenerEstado } from '../../ArchivosJS/api/onboarding.js';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     profesional: null,
     token: null,
+    onboardingCompletado: false,
+    onboardingVerificado: false,
     cargando: false,
     error: null
   }),
@@ -35,6 +38,8 @@ export const useAuthStore = defineStore('auth', {
 
         this.token = token;
         this.profesional = profesional;
+        this.onboardingCompletado = false;
+        this.onboardingVerificado = false;
 
         localStorage.setItem('token', token);
       } catch (error) {
@@ -49,6 +54,8 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       this.profesional = null;
       this.token = null;
+      this.onboardingCompletado = false;
+      this.onboardingVerificado = false;
       this.error = null;
 
       localStorage.removeItem('token');
@@ -71,10 +78,31 @@ export const useAuthStore = defineStore('auth', {
 
         this.token = tokenGuardado;
         this.profesional = profesional;
+        this.onboardingVerificado = false;
       } catch (error) {
         this.logout();
       } finally {
         this.cargando = false;
+      }
+    },
+
+    // Consulta una sola vez por sesion si el profesional termino el onboarding.
+    // El router usa este dato para redirigir sin pedirle a la API en cada navegacion.
+    async verificarOnboarding(token) {
+      if (this.onboardingVerificado) {
+        return this.onboardingCompletado;
+      }
+
+      try {
+        const { completado } = await obtenerEstado(token);
+
+        this.onboardingCompletado = completado;
+        this.onboardingVerificado = true;
+
+        return completado;
+      } catch (error) {
+        this.error = error.message;
+        throw error;
       }
     }
   }

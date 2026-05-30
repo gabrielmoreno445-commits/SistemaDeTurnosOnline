@@ -1,0 +1,176 @@
+---
+// pages/buscar.astro
+// Pagina de resultados de busqueda renderizada en el servidor por Astro.
+// Lee ?q= desde la URL y consulta al backend usando el nombre del servicio Docker.
+// A diferencia del buscador Vue, este HTML queda listo al cargar la pagina y ayuda al SEO.
+
+import Layout from '../layouts/Layout.astro';
+
+export const prerender = false;
+
+const query = Astro.url.searchParams.get('q') || '';
+const API_URL = import.meta.env.API_URL || 'http://backend:4000';
+const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:4000';
+let resultados = [];
+let error = false;
+
+if (query.trim().length >= 2) {
+  try {
+    const res = await fetch(`${API_URL}/busqueda?q=${encodeURIComponent(query.trim())}`);
+
+    if (res.ok) {
+      resultados = await res.json();
+    } else {
+      error = true;
+    }
+  } catch (fetchError) {
+    error = true;
+  }
+}
+---
+
+<Layout title={`Resultados para: ${query || 'Busqueda'}`}>
+  <section class="resultados-page">
+    <div class="resultados-header">
+      <p class="eyebrow">Busqueda</p>
+      <h1>Resultados para: {query || '...'}</h1>
+    </div>
+
+    {query.trim().length === 0 && (
+      <p class="message">Ingresa un termino para buscar.</p>
+    )}
+
+    {query.trim().length === 1 && (
+      <p class="message">Ingresa al menos 2 caracteres para buscar.</p>
+    )}
+
+    {error && (
+      <p class="message message--error">No se pudo realizar la busqueda.</p>
+    )}
+
+    {!error && query.trim().length >= 2 && resultados.length === 0 && (
+      <p class="message">No encontramos profesionales con ese termino.</p>
+    )}
+
+    {resultados.length > 0 && (
+      <div class="resultados-grid">
+        {resultados.map((prof) => (
+          <a class="resultado-card" href={`/${prof.slug}`}>
+            {prof.foto_url ? (
+              <img
+                class="resultado-foto"
+                src={`${PUBLIC_API_URL}${prof.foto_url}`}
+                alt={`Foto de ${prof.nombre}`}
+              />
+            ) : (
+              <span class="resultado-foto resultado-foto--empty">
+                {prof.nombre.charAt(0).toUpperCase()}
+              </span>
+            )}
+            <h2>{prof.nombre}</h2>
+            <p>{prof.especialidad || 'Especialidad no informada'}</p>
+          </a>
+        ))}
+      </div>
+    )}
+  </section>
+</Layout>
+
+<style>
+  .resultados-page {
+    padding: 2rem 0;
+  }
+
+  .resultados-header {
+    display: grid;
+    gap: 8px;
+  }
+
+  .eyebrow {
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .resultados-header h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.1;
+  }
+
+  .message {
+    margin-top: 2rem;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+  }
+
+  .message--error {
+    color: var(--color-danger);
+  }
+
+  .resultados-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .resultado-card {
+    display: block;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+
+  .resultado-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .resultado-foto {
+    width: 72px;
+    height: 72px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .resultado-foto--empty {
+    background: var(--bg-base);
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 1.3rem;
+  }
+
+  .resultado-card h2 {
+    margin-bottom: 0.35rem;
+    font-size: 1.1rem;
+  }
+
+  .resultado-card p {
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 768px) {
+    .resultados-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .resultados-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -2,7 +2,7 @@
 // Funciones para ver y gestionar los turnos desde el panel del profesional.
 // El parametro fecha es opcional: si no se envia, el backend devuelve los de hoy.
 
-const API_URL = 'http://localhost:4000';
+import { API_URL } from '../utils/api.js';
 
 // Ejecuta requests autenticadas de turnos y centraliza errores del backend.
 // Mantiene la capa de paginas mas limpia para que solo se enfoque en la UI.

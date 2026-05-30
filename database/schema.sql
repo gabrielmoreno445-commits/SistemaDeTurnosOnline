@@ -219,3 +219,38 @@ SET @agregar_direccion = (
 PREPARE stmt_direccion FROM @agregar_direccion;
 EXECUTE stmt_direccion;
 DEALLOCATE PREPARE stmt_direccion;
+
+-- Campos nuevos en profesionales (Fase 3)
+-- foto_url guarda la ruta relativa de la imagen subida por el profesional.
+-- Se deja NULL cuando no hay foto para que el frontend pueda mostrar un placeholder.
+SET @agregar_foto_url = (
+  SELECT IF(
+    COUNT(*) = 0,
+    'ALTER TABLE profesionales ADD COLUMN foto_url VARCHAR(255) DEFAULT NULL',
+    'SELECT 1'
+  )
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = 'turnos_db'
+    AND TABLE_NAME = 'profesionales'
+    AND COLUMN_NAME = 'foto_url'
+);
+PREPARE stmt_foto_url FROM @agregar_foto_url;
+EXECUTE stmt_foto_url;
+DEALLOCATE PREPARE stmt_foto_url;
+
+-- onboarding_completado controla si el profesional ya termino el wizard inicial.
+-- Vive en base de datos, no en localStorage, para respetar el estado entre dispositivos.
+SET @agregar_onboarding_completado = (
+  SELECT IF(
+    COUNT(*) = 0,
+    'ALTER TABLE profesionales ADD COLUMN onboarding_completado TINYINT(1) NOT NULL DEFAULT 0',
+    'SELECT 1'
+  )
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = 'turnos_db'
+    AND TABLE_NAME = 'profesionales'
+    AND COLUMN_NAME = 'onboarding_completado'
+);
+PREPARE stmt_onboarding_completado FROM @agregar_onboarding_completado;
+EXECUTE stmt_onboarding_completado;
+DEALLOCATE PREPARE stmt_onboarding_completado;

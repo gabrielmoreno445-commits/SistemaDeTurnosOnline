@@ -6,9 +6,15 @@ Los cambios exitosos tambien actualizan el store local para que la SPA
 muestre el nombre y la especialidad nuevos sin recargar la sesion.
 -->
 <script setup>
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 
-import { actualizarPerfil, cambiarPassword } from '../../ArchivosJS/api/perfil.js';
+import {
+  actualizarPerfil,
+  cambiarPassword,
+  eliminarFotoPerfil,
+  subirFotoPerfil
+} from '../../ArchivosJS/api/perfil.js';
+import { API_URL } from '../../ArchivosJS/utils/api.js';
 import NavBar from '../components/NavBar.vue';
 import { useAuth } from '../composables/useAuth.js';
 import { useAuthStore } from '../stores/authStore.js';
@@ -38,6 +44,23 @@ const cargandoInicial = ref(false);
 const cargandoPass = ref(false);
 const mensajePass = ref(null);
 const errorPass = ref(null);
+const fotoUrl = ref(null);
+const archivoFoto = ref(null);
+const subiendoFoto = ref(false);
+const mensajeFoto = ref(null);
+const errorFoto = ref(null);
+
+const fotoSrc = computed(() => {
+  if (!fotoUrl.value) {
+    return null;
+  }
+
+  if (fotoUrl.value.startsWith('http')) {
+    return fotoUrl.value;
+  }
+
+  return `${API_URL}${fotoUrl.value}`;
+});
 
 // Precarga el formulario desde el store para evitar una request extra al abrir la pagina.
 // La sesion ya trae estos datos porque el backend los devuelve en /auth/me.
@@ -47,6 +70,7 @@ function completarFormularioDesdeSesion() {
   formulario.telefono = profesional.value?.telefono || '';
   formulario.descripcion = profesional.value?.descripcion || '';
   formulario.direccion = profesional.value?.direccion || '';
+  fotoUrl.value = profesional.value?.foto_url || null;
 }
 
 // Reutiliza el endpoint de perfil con body vacio para obtener el estado persistido actual.
@@ -136,6 +160,69 @@ async function guardarPassword() {
     errorPass.value = fetchError.message;
   } finally {
     cargandoPass.value = false;
+  }
+}
+
+function seleccionarFoto(event) {
+  const [archivo] = event.target.files;
+  archivoFoto.value = archivo || null;
+  mensajeFoto.value = null;
+  errorFoto.value = null;
+}
+
+// Sube la nueva foto y sincroniza el store para que otras vistas puedan reutilizarla.
+// El archivo viaja como FormData porque el backend usa Multer.
+async function subirFoto() {
+  if (!token.value || !archivoFoto.value) {
+    errorFoto.value = 'Debes seleccionar una imagen';
+    return;
+  }
+
+  subiendoFoto.value = true;
+  mensajeFoto.value = null;
+  errorFoto.value = null;
+
+  try {
+    const respuesta = await subirFotoPerfil(token.value, archivoFoto.value);
+
+    fotoUrl.value = respuesta.foto_url;
+    authStore.profesional = {
+      ...authStore.profesional,
+      foto_url: respuesta.foto_url
+    };
+    archivoFoto.value = null;
+    mensajeFoto.value = 'Foto actualizada correctamente';
+  } catch (fetchError) {
+    errorFoto.value = fetchError.message;
+  } finally {
+    subiendoFoto.value = false;
+  }
+}
+
+// Elimina la foto persistida y vuelve al placeholder localmente.
+// La API tambien borra el archivo fisico para no acumular imagenes sin uso.
+async function eliminarFoto() {
+  if (!token.value) {
+    return;
+  }
+
+  subiendoFoto.value = true;
+  mensajeFoto.value = null;
+  errorFoto.value = null;
+
+  try {
+    const respuesta = await eliminarFotoPerfil(token.value);
+
+    fotoUrl.value = null;
+    authStore.profesional = {
+      ...authStore.profesional,
+      foto_url: null
+    };
+    mensajeFoto.value = respuesta.mensaje;
+  } catch (fetchError) {
+    errorFoto.value = fetchError.message;
+  } finally {
+    subiendoFoto.value = false;
   }
 }
 
@@ -251,6 +338,41 @@ onMounted(async () => {
             </button>
           </div>
         </section>
+
+        <section class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>Foto de perfil</h2>
+              <p>Esta imagen se usara como avatar publico del profesional.</p>
+            </div>
+          </div>
+
+          <p v-if="mensajeFoto" class="message message--success">
+            {{ mensajeFoto }}
+          </p>
+
+          <p v-if="errorFoto" class="message message--error">
+            {{ errorFoto }}
+          </p>
+
+          <div class="photo-section">
+            <img v-if="fotoSrc" class="avatar" :src="fotoSrc" alt="Foto de perfil" />
+            <div v-else class="avatar avatar--empty">Sin foto</div>
+
+            <div class="photo-controls">
+              <input type="file" accept="image/jpeg,image/png,image/webp" @change="seleccionarFoto" />
+
+              <div class="actions">
+                <button class="button button--primary" type="button" :disabled="subiendoFoto || !archivoFoto" @click="subirFoto">
+                  {{ subiendoFoto ? 'Subiendo...' : 'Subir foto' }}
+                </button>
+                <button v-if="fotoUrl" class="button button--danger" type="button" :disabled="subiendoFoto" @click="eliminarFoto">
+                  Eliminar foto
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
       </section>
     </section>
   </main>
@@ -359,5 +481,37 @@ onMounted(async () => {
 
 .button--primary {
   background: var(--color-primary, #2563eb);
+}
+
+.button--danger {
+  background: var(--color-danger, #b42318);
+}
+
+.photo-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: center;
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid var(--color-border, #d0d5dd);
+  background: var(--color-surface, #f3f4f6);
+}
+
+.avatar--empty {
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted, #64748b);
+  font-weight: 700;
+}
+
+.photo-controls {
+  display: grid;
+  gap: 12px;
 }
 </style>

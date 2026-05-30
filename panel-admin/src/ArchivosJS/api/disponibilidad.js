@@ -3,7 +3,7 @@
 // dia_semana: 0=Domingo, 1=Lunes, 2=Martes, 3=Miercoles,
 //             4=Jueves, 5=Viernes, 6=Sabado
 
-const API_URL = 'http://localhost:4000';
+import { API_URL } from '../utils/api.js';
 
 // Ejecuta llamadas autenticadas contra disponibilidad y unifica errores.
 // Esto evita repetir parseo JSON y armado de headers en cada funcion publica.

@@ -1,0 +1,4 @@
+# Variables locales del panel admin.
+# .env.example si se versiona para documentar que necesita Vercel.
+.env
+.env.production

@@ -3,7 +3,7 @@
 // El backend calcula estos valores en tiempo real, por eso el frontend
 // solo consulta y presenta los resultados sin cache local.
 
-const API_URL = 'http://localhost:4000';
+import { API_URL } from '../utils/api.js';
 
 // Ejecuta requests autenticadas de metricas y centraliza errores del backend.
 // Esto evita repetir codigo de fetch en DashboardPage y MetricasPage.

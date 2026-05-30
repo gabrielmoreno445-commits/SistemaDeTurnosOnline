@@ -1,16 +1,18 @@
 <!--
 RegisterPage.vue
 Pantalla de alta inicial de profesionales.
-Usa directamente la API de registro porque crear la cuenta no debe iniciar
-sesion automaticamente: primero confirma exito y luego redirige a login.
+Registra la cuenta y luego inicia sesion automaticamente para llevar
+al profesional al wizard de onboarding sin pedirle un login manual.
 -->
 <script setup>
 import { reactive, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 
-import { registrarProfesional } from '../../ArchivosJS/api/auth.js';
+import { loginProfesional, registrarProfesional } from '../../ArchivosJS/api/auth.js';
+import { useAuthStore } from '../stores/authStore.js';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const formulario = reactive({
   nombre: '',
@@ -24,8 +26,8 @@ const cargando = ref(false);
 const error = ref('');
 const mensajeExito = ref('');
 
-// Registra el profesional sin loguearlo automaticamente para respetar el flujo
-// pedido por la etapa: alta correcta, mensaje de exito y luego redireccion a login.
+// Registra el profesional y usa las mismas credenciales para iniciar sesion.
+// Esto mejora la continuidad del alta: la cuenta nueva entra directo a configurar su agenda.
 async function manejarSubmit() {
   cargando.value = true;
   error.value = '';
@@ -40,11 +42,16 @@ async function manejarSubmit() {
       telefono: formulario.telefono
     });
 
-    mensajeExito.value = '¡Cuenta creada! Podés iniciar sesión';
+    const { token, profesional } = await loginProfesional(formulario.email, formulario.password);
 
-    setTimeout(() => {
-      router.push('/login');
-    }, 2000);
+    authStore.token = token;
+    authStore.profesional = profesional;
+    authStore.onboardingCompletado = false;
+    authStore.onboardingVerificado = true;
+    localStorage.setItem('token', token);
+
+    mensajeExito.value = 'Cuenta creada correctamente';
+    router.push('/onboarding');
   } catch (requestError) {
     error.value = requestError.message;
   } finally {

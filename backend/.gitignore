@@ -4,3 +4,10 @@
 
 # Dependencias instaladas localmente.
 node_modules
+
+# Fotos subidas por profesionales.
+# Se versiona la carpeta con .gitkeep, pero no los archivos reales de usuarios.
+uploads/*.jpg
+uploads/*.jpeg
+uploads/*.png
+uploads/*.webp

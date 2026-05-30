@@ -145,7 +145,10 @@
 
 import { computed, onMounted, ref, watch } from 'vue';
 
-const API_BASE = 'http://localhost:4000/publico';
+// En Astro, las variables PUBLIC_ son accesibles desde componentes Vue.
+// La isla corre en el navegador, por eso usa la URL publica del backend.
+const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:4000';
+const API_BASE = `${API_URL}/publico`;
 
 export default {
   props: {

@@ -2,7 +2,7 @@
 // Funciones para gestionar las fechas en que el profesional no atiende.
 // Estas fechas se reflejan en el sitio publico sin depender de los horarios semanales.
 
-const API_URL = 'http://localhost:4000';
+import { API_URL } from '../utils/api.js';
 
 // Ejecuta requests autenticadas contra dias bloqueados y unifica el manejo de errores.
 // Mantiene la capa de vistas enfocada en la UI y no en detalles de red.

@@ -1,0 +1,4 @@
+# Variables locales del sitio publico.
+# .env.example si se versiona para documentar que necesita Vercel.
+.env
+.env.production

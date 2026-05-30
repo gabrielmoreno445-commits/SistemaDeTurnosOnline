@@ -98,6 +98,28 @@ docker compose down -v
 
 ---
 
+## Deploy en producción
+
+El proyecto está preparado para deployarse con:
+- **Railway** — backend Node.js + MySQL
+- **Vercel** — sitio público (Astro) + panel admin (Vue)
+
+Ver instrucciones detalladas en:
+- `deploy/instrucciones-railway.md`
+- `deploy/instrucciones-vercel.md`
+
+### URLs de producción
+
+Una vez deployado, actualizar estos valores:
+
+| Servicio | URL |
+|---|---|
+| Sitio público | https://[tu-proyecto].vercel.app |
+| Panel admin | https://[tu-panel].vercel.app |
+| API backend | https://[tu-backend].railway.app |
+
+---
+
 ## Variables de entorno
 
 Copiar `backend/.env.example` a `backend/.env` y completar:
