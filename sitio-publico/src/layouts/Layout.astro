@@ -2,11 +2,13 @@
 // layouts/Layout.astro
 // Layout base del sitio publico. Lo usan todas las paginas .astro.
 // Importa el sistema de diseno CSS y define la estructura comun del HTML.
-// Props: title (string), usado para la etiqueta <title> del documento.
+// Tambien centraliza el navbar para mantener links y estado activo consistentes.
 
 import '../styles/global.css';
 
 const { title = 'Sistema de Turnos Online' } = Astro.props;
+const pathname = Astro.url.pathname;
+const esActivo = (href) => pathname === href || (href !== '/' && pathname.startsWith(href));
 ---
 
 <!doctype html>
@@ -30,6 +32,13 @@ const { title = 'Sistema de Turnos Online' } = Astro.props;
     <header class="site-header">
       <div class="shell">
         <a href="/" class="brand">Sistema de Turnos Online</a>
+        <nav class="site-nav" aria-label="Navegacion principal">
+          <a href="/" class:list={['nav-link', { active: esActivo('/') }]}>Inicio</a>
+          <a href="/tu-necesidad" class:list={['nav-link', { active: esActivo('/tu-necesidad') }]}>
+            Tu necesidad
+          </a>
+          <a href="http://localhost:5173/register" class="nav-link">Registrarse como profesional</a>
+        </nav>
         <button id="theme-toggle" class="theme-toggle btn" type="button">🌙</button>
       </div>
     </header>
@@ -83,6 +92,7 @@ const { title = 'Sistema de Turnos Online' } = Astro.props;
   }
 
   .site-header .shell {
+    min-height: 78px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -91,10 +101,36 @@ const { title = 'Sistema de Turnos Online' } = Astro.props;
 
   .brand {
     display: inline-block;
-    padding: 20px 0;
     font-size: 1rem;
     font-weight: 700;
     color: var(--text-primary);
+  }
+
+  .site-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-weight: 600;
+    transition:
+      background-color var(--transition),
+      color var(--transition);
+  }
+
+  .nav-link:hover,
+  .nav-link.active {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
   }
 
   .site-main {
@@ -120,5 +156,27 @@ const { title = 'Sistema de Turnos Online' } = Astro.props;
     color: var(--text-primary);
     font-size: 1rem;
     line-height: 1;
+  }
+
+  @media (max-width: 760px) {
+    .site-header .shell {
+      flex-wrap: wrap;
+      padding: 14px 0;
+    }
+
+    .brand {
+      flex: 1 1 calc(100% - 60px);
+    }
+
+    .site-nav {
+      order: 3;
+      width: 100%;
+      justify-content: flex-start;
+      overflow-x: auto;
+    }
+
+    .nav-link {
+      white-space: nowrap;
+    }
   }
 </style>

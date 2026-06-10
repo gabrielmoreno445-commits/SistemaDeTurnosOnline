@@ -85,6 +85,24 @@ body {
   transition: background-color var(--transition), color var(--transition);
 }
 
+.boot-error {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.boot-error h1,
+.boot-error p {
+  margin: 0;
+}
+
+.boot-error p {
+  color: var(--color-text-muted);
+}
+
 button,
 input,
 select,

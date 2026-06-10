@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>JSON Viewer Settings</title>
+<style>
+    /* Light theme styles */
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 10px 10px 10px 50px;
+      color: #333;
+      width: 360px;
+      font-size: 15px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+
+    .theme-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    label {
+      margin-right: 10px;
+    }
+
+    input[type="radio"] {
+      border: 1px solid #ddd;
+      padding: 5px;
+      border-radius: 4px;
+    }
+
+    .input-text {
+      padding: 4px;
+      margin-left: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      font-size: 14px;
+      transition: all 0.3s ease-in-out;
+      color: #333;
+
+      &:focus {
+        border-color: #4caf50;
+        outline: none;
+      }
+    }
+
+
+    #saveButton {
+      background-color: #4caf50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #msg {
+      margin-left: 10px;
+      color: green;
+      z-index: 9999;
+    }
+
+    .msg-success {
+      color: green;
+    }
+
+    .msg-failure {
+      color: red;
+    }
+
+    /* Dark theme styles (hidden initially) */
+    body.dark-theme {
+      background-color: #222;
+      color: #fff;
+    }
+
+    h2.dark-theme {
+      color: #ddd;
+    }
+
+    .theme-container.dark-theme {
+      color: #ddd;
+    }
+
+    label.dark-theme {
+      color: #ddd;
+    }
+
+    input[type="radio"].dark-theme {
+      background-color: #333;
+      border-color: #555;
+      color: #ddd;
+    }
+
+    body.dark-theme .input-text {
+      background-color: #333;
+      color: #fff;
+      border: 1px solid #444;
+    }
+
+    #saveButton.dark-theme {
+      background-color: #388e3c;
+    }
+
+    #msg.dark-theme {
+      color: lightgreen;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>JSON Viewer Settings</h2>
+  <div class="theme-container">
+    <label for="theme">Theme:</label>
+    <input type="radio" name="theme" id="dark" checked value="dark" />
+    <label for="dark">Dark</label>
+    <input type="radio" name="theme" id="light" value="light" />
+    <label for="light">Light</label>
+    <input type="radio" name="theme" id="follow" value="follow" />
+    <label for="follow">Follow Browser</label>
+  </div>
+  <div class="theme-container">
+    PreviewArray:
+    <input type="text" id="hoverPreviewArrayCount" name="hoverPreviewArrayCount" value="100" class="input-text" />
+  </div>
+  <div class="theme-container" style="padding-left: 2px;">
+    PreviewField:
+    <input type="text" id="hoverPreviewFieldCount" name="hoverPreviewFieldCount" value="10" class="input-text" />
+  </div>
+  <div class="theme-container" style="padding-left: 10px;">
+    OpenDepth:
+    <input type="text" id="openAtDepthCount" name="openAtDepthCount" value="5" class="input-text" />
+  </div>
+  <div class="theme-container">
+    <button type="submit" id="saveButton">Save</button>
+    <div id="msg"></div>
+  </div>
+  <div class="theme-container">
+
+  </div>
+
+  <script src="content-script/popup.js"></script>
+</body>
+
+</html>

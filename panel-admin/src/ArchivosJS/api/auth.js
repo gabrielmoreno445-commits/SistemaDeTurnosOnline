@@ -3,13 +3,13 @@
 // Todas las funciones son async y lanzan el error si la respuesta no es ok,
 // para que el store o el componente llamador decida como mostrarlo al usuario.
 
-import { API_URL } from '../utils/api.js';
+import { API_URL, fetchConTimeout } from '../utils/api.js';
 
 // Ejecuta una llamada al backend de autenticacion y centraliza el parseo JSON.
 // Recibe la ruta y la configuracion fetch para evitar duplicar codigo en cada operacion.
 // Si la respuesta no es exitosa, lanza el mensaje de error del backend.
 async function hacerRequest(ruta, opciones) {
-  const response = await fetch(`${API_URL}${ruta}`, opciones);
+  const response = await fetchConTimeout(`${API_URL}${ruta}`, opciones);
   const data = await response.json();
 
   if (!response.ok) {

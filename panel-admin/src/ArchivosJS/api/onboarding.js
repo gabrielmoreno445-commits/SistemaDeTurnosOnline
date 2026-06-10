@@ -3,12 +3,12 @@
 // obtenerEstado permite decidir redirecciones desde el router y
 // completarOnboarding persiste el cierre del flujo en la base de datos.
 
-import { API_URL } from '../utils/api.js';
+import { API_URL, fetchConTimeout } from '../utils/api.js';
 
 // Centraliza requests autenticadas del onboarding para mantener headers y errores consistentes.
 async function hacerRequest(ruta, token, opciones = {}) {
   try {
-    const response = await fetch(`${API_URL}${ruta}`, {
+    const response = await fetchConTimeout(`${API_URL}${ruta}`, {
       ...opciones,
       headers: {
         Authorization: `Bearer ${token}`,

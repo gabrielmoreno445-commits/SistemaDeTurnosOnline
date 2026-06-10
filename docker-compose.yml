@@ -1,9 +1,8 @@
-version: '3.9'
-
 services:
   db:
     image: mysql:8
     container_name: sistema-turnos-db
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root_password
       MYSQL_DATABASE: turnos_db
@@ -24,6 +23,7 @@ services:
   backend:
     build: ./backend
     container_name: sistema-turnos-backend
+    restart: unless-stopped
     environment:
       PORT: 4000
       DB_HOST: db
@@ -45,6 +45,7 @@ services:
   panel-admin:
     build: ./panel-admin
     container_name: sistema-turnos-panel-admin
+    restart: unless-stopped
     ports:
       - '5173:5173'
     volumes:
@@ -55,6 +56,7 @@ services:
   sitio-publico:
     build: ./sitio-publico
     container_name: sistema-turnos-sitio-publico
+    restart: unless-stopped
     ports:
       - '4321:4321'
     volumes:

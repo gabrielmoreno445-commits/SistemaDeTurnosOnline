@@ -4,18 +4,6 @@ Componente raiz del panel admin.
 Envuelve el router-view y restaura la sesion una sola vez al montar la SPA
 para que la aplicacion recupere el profesional logueado desde localStorage.
 -->
-<script setup>
-import { onMounted } from 'vue';
-
-import { useAuthStore } from './stores/authStore.js';
-
-const authStore = useAuthStore();
-
-onMounted(() => {
-  authStore.restaurarSesion();
-});
-</script>
-
 <template>
   <div class="app-shell">
     <router-view />

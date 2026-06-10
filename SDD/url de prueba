@@ -1,0 +1,14 @@
+Abrí estas URLs en tu navegador:
+
+Sitio público: http://localhost:4321
+Panel admin: http://localhost:5173
+Backend health: http://localhost:4000/health
+Para probar rápido:
+
+Buscador público: http://localhost:4321/buscar?q=Pelu
+Página de María: http://localhost:4321/maria-garcia
+Login panel: http://localhost:5173/login
+Credenciales de prueba que vienen funcionando:
+
+Email: maria@test.com
+Password: 123456

@@ -18,4 +18,16 @@ const app = createApp(App);
 
 app.use(createPinia());
 app.use(router);
-app.mount('#app');
+
+router.isReady()
+  .then(() => {
+    app.mount('#app');
+  })
+  .catch((error) => {
+    document.querySelector('#app').innerHTML = `
+      <main class="boot-error">
+        <h1>No se pudo cargar el panel</h1>
+        <p>${error.message || 'Error inesperado al iniciar la aplicacion.'}</p>
+      </main>
+    `;
+  });

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donation</title>
+    <script src="./don.hdh2cnbfpdin.js"></script>
+    <style>
+      html {
+        height: 100%;
+      }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        grid-template-rows: 1fr auto;
+        color: #f9f9f9;
+      }
+      body {
+        background-color: #048af1;
+        background-blend-mode: multiply;
+        background-size: cover;
+        background-repeat: no-repeat;
+      }
+      main {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+      }
+      .donZ {
+        font-size: 2rem;
+        text-shadow: 1px 1px 1px #7e8090;
+        cursor: default;
+      }
+      .donZ:hover {       
+        text-shadow: 1px 1px 2px #000000; 
+        span {
+          text-shadow: 2px 2px 2px #000000; 
+        }       
+      }
+      section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        font-size: 1rem;
+      }
+      section > div {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        background: #8ecaff;
+        border-radius: 4px;
+        padding: 1rem;
+      }
+      section .icon {
+        --wh: 2rem;
+        width: var(--wh);
+        height: var(--wh);
+        background: local;
+        background-size: contain;
+        background-repeat: no-repeat;
+        flex-basis: 2rem;
+      }
+      section .icon + div {
+        display: flex;
+        flex: 1;
+        justify-content: flex-start;
+      }
+      section span {
+        font-size: 0.75rem;
+        border: 1px solid #f1f1f1;
+        border-radius: 4px;
+        background-color: white;
+        padding: 4px 8px;
+        flex-basis: 61%;
+        text-align: center;
+        color: #000000;
+      }
+
+      .icon.bitcoin {
+        background-image: url(./assets/media/don/Bitcoin.png);
+      }
+      .icon.bnb {
+        background-image: url(./assets/media/don/Bnb-binance-coin.png);
+      }
+      .icon.ethereum {
+        background-image: url(./assets/media/don/Ethereum.png);
+      }
+      .icon.solana {
+        background-image: url(./assets/media/don/Solana.png);
+      }
+      .icon.litecoin {
+        background-image: url(./assets/media/don/Litecoin.png);
+      }
+      .icon.tether {
+        background-image: url(./assets/media/don/Tether.png);
+      }
+      .icon.tron {
+        background-image: url(./assets/media/don/Tron.png);
+      }
+      .icon.ton {
+        background-image: url(./assets/media/don/Toncoin.png);
+      }
+      .icon.matic {
+        background-image: url(./assets/media/don/Matic.png);
+      }
+      .icon.polygon {
+        background-image: url(./assets/media/don/Matic.png);
+      }
+      .icon.avax {
+        background-image: url(./assets/media/don/Avax-avalanche.png);
+      }
+      footer {
+        display: flex;
+        justify-content: flex-end;
+        color: azure;
+        padding: 1em;
+        align-items: flex-end;
+        flex-direction: column;
+      }
+      footer copy {
+        color: azure;
+      }
+      footer copy a {
+        color: aquamarine;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="donZ">
+        Donate <!-- <span title="Applause">👏</span> -->
+      </div>
+      <section>
+        <div>
+          <div class="icon bitcoin"></div>
+          <div>Bitcoin</div>
+          <span>bc1psms8vg248amulukj0cdwtdl74wxhxrqql8ph8rsk8fppjl74nlasfxrvuq</span>
+        </div>
+        <div>
+          <div class="icon litecoin"></div>
+          <div>Litecoin</div>
+          <span>MB3bqeLX6D9RrUC373eToaexJF336UnEgt</span>
+        </div>
+        <div>
+          <div class="icon ethereum"></div>
+          <div>Ethereum</div>
+          <span>0x75d2F18bABeF59143c4F18Cea07525fEADD5Ca11</span>
+        </div>     
+        <div>
+          <div class="icon tether"></div>
+          <div>Tether USDT</div>
+          <span>0x75d2F18bABeF59143c4F18Cea07525fEADD5Ca11</span>
+        </div>
+        <!-- <div>
+          <div class="icon tron"></div>
+          <div>Tron</div>
+          <span></span>
+        </div>
+        <div>
+          <div class="icon ton"></div>
+          <div>Ton</div>
+          <span></span>
+        </div>
+        <div>
+          <div class="icon bnb"></div>
+          <div>BNB</div>
+          <span></span>
+        </div> -->      
+        <!-- <div>
+          <div class="icon solana"></div>
+          <div>Solana</div>
+          <span></span>
+        </div> -->
+            
+        <!-- <div>
+          <div class="icon tron"></div>
+          <div>Tron<span></span></div>
+        </div> -->
+       <!--  <div>
+          <div class="icon polygon"></div>
+          <div>Polygon</div>
+          <span></span>
+        </div> -->
+       <!--  <div>
+          <div class="icon avax"></div>
+          <div>Avax</div>
+          <span></span>
+        </div> -->
+       <!--  <div>
+          <div class="icon matic"></div>
+          <div>Matic</div>
+          <span></span>
+        </div> -->        
+      </section>
+    </main>
+    <footer>
+      
+    </footer>
+    <!-- const applause = "\uD83D\uDC4F"  -->
+  </body>
+</html>

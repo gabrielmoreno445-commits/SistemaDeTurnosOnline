@@ -58,7 +58,7 @@ const router = createRouter({
 // Primero restaura/verifica sesion; despues consulta onboarding una vez por sesion.
 // Si el wizard no esta completo, fuerza /onboarding para que el panel no se use
 // sin perfil, servicios y horarios minimos configurados.
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to) => {
   const authStore = useAuthStore();
   const esRutaPublicaDeAuth = to.path === '/login' || to.path === '/register';
   const tokenGuardado = localStorage.getItem('token');
@@ -68,7 +68,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (to.meta.requiereAuth && !authStore.estaLogueado) {
-    return next('/login');
+    return '/login';
   }
 
   if (authStore.estaLogueado && !esRutaPublicaDeAuth) {
@@ -76,23 +76,21 @@ router.beforeEach(async (to, from, next) => {
       await authStore.verificarOnboarding(authStore.token);
     } catch (error) {
       authStore.logout();
-      return next('/login');
+      return '/login';
     }
 
     if (!authStore.onboardingCompletado && !to.meta.esOnboarding) {
-      return next('/onboarding');
+      return '/onboarding';
     }
 
     if (authStore.onboardingCompletado && to.meta.esOnboarding) {
-      return next('/');
+      return '/';
     }
   }
 
   if (esRutaPublicaDeAuth && authStore.estaLogueado) {
-    return next('/');
+    return '/';
   }
-
-  return next();
 });
 
 export default router;

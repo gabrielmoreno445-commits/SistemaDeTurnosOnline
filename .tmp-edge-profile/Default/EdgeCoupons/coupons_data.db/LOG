@@ -1,0 +1,5 @@
+2026/06/09-23:49:52.070 1998 Creating DB C:\Users\Gabriel\Desktop\SistemaDeTurnosOnline\.tmp-edge-profile\Default\EdgeCoupons/coupons_data.db since it was missing.
+2026/06/09-23:49:59.481 1998 Reusing MANIFEST C:\Users\Gabriel\Desktop\SistemaDeTurnosOnline\.tmp-edge-profile\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/06/09-23:57:12.672 2308 Level-0 table #5: started
+2026/06/09-23:57:12.760 2308 Level-0 table #5: 682680 bytes OK
+2026/06/09-23:57:12.776 2308 Delete type=0 #3

@@ -1,126 +1,266 @@
 ---
 // pages/index.astro
-// Landing principal del sitio publico.
-// Presenta la propuesta de valor y el flujo basico de reserva.
-// El buscador vive como isla Vue porque necesita reaccionar mientras el usuario escribe.
+// Pagina de bienvenida del sitio publico.
+// Usa un carrusel visual en el hero para presentar distintos rubros sin cargar logica de cliente.
 
 import Layout from '../layouts/Layout.astro';
-import BuscadorProfesional from '../vue-components/BuscadorProfesional.vue';
+
+const slides = [
+  {
+    src: '/img/10-masajes.png',
+    alt: 'Profesional de masajes atendiendo con reserva previa',
+    label: 'Masajes'
+  },
+  {
+    src: '/img/11-odontologia.png',
+    alt: 'Consultorio odontologico con turnos organizados',
+    label: 'Odontologia'
+  },
+  {
+    src: '/img/12-peluqueria.png',
+    alt: 'Servicio de peluqueria con agenda online',
+    label: 'Peluqueria'
+  },
+  {
+    src: '/img/13-psicologia.png',
+    alt: 'Atencion psicologica con reserva digital',
+    label: 'Psicologia'
+  },
+  {
+    src: '/img/14-clases-particulares.png',
+    alt: 'Clases particulares con reserva de horarios',
+    label: 'Clases particulares'
+  },
+  {
+    src: '/img/15-empleada-domestica.png',
+    alt: 'Servicio de empleada domestica con agenda organizada',
+    label: 'Empleada domestica'
+  },
+  {
+    src: '/img/16-ninera.png',
+    alt: 'Servicio de ninera con turnos coordinados',
+    label: 'Ninera'
+  },
+  {
+    src: '/img/17-corte-pasto.png',
+    alt: 'Servicio de corte de pasto con reserva previa',
+    label: 'Corte de pasto'
+  },
+  {
+    src: '/img/18-paseador-perro.png',
+    alt: 'Paseador de perro con horarios disponibles',
+    label: 'Paseador de perro'
+  },
+  {
+    src: '/img/19-electricista.png',
+    alt: 'Electricista con agenda de atencion online',
+    label: 'Electricista'
+  }
+];
+
+const duracionTotal = `${slides.length * 5}s`;
 ---
 
-<Layout title="Reserva tu turno online">
-  <section class="hero">
-    <div class="hero-copy">
-      <p class="eyebrow">Sitio publico</p>
-      <h1>Reserva tu turno online</h1>
-      <p class="lead">
-        Encontra profesionales y agenda en segundos, sin llamadas ni mensajes.
-      </p>
+<Layout title="Sistema de Turnos Online">
+  <section class="home-carousel" aria-label="Presentacion de servicios disponibles">
+    <div class="carousel-track" aria-hidden="true">
+      {
+        slides.map((slide, index) => (
+          <figure
+            class="carousel-slide"
+            style={`--delay: ${index * 5}s; --duration: ${duracionTotal};`}
+          >
+            <img
+              src={slide.src}
+              alt={slide.alt}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+            />
+            <figcaption>{slide.label}</figcaption>
+          </figure>
+        ))
+      }
     </div>
 
-    <BuscadorProfesional client:load />
-  </section>
+    <div class="carousel-overlay"></div>
 
-  <section class="como-funciona">
-    <article class="step-card card animate-in" style="animation-delay: 60ms;">
-      <span class="step-number">1</span>
-      <h2>Elegi tu profesional</h2>
-      <p>Explora perfiles publicos y encontra la especialidad que necesitas.</p>
-    </article>
-
-    <article class="step-card card animate-in" style="animation-delay: 120ms;">
-      <span class="step-number">2</span>
-      <h2>Selecciona fecha y horario</h2>
-      <p>Revisa la disponibilidad real y elige el mejor momento para vos.</p>
-    </article>
-
-    <article class="step-card card animate-in" style="animation-delay: 180ms;">
-      <span class="step-number">3</span>
-      <h2>Confirma tu turno</h2>
-      <p>Completa tus datos y deja la reserva registrada en pocos segundos.</p>
-    </article>
+    <div class="hero-content animate-in">
+      <p class="eyebrow">Sistema de Turnos Online</p>
+      <h1>Bienvenido a Sistema de Turnos Online</h1>
+      <p class="hero-subtitle">Tu turno, cuando quieras</p>
+      <a href="/tu-necesidad" class="hero-action">Encontrar un profesional</a>
+    </div>
   </section>
 </Layout>
 
 <style>
-  .hero {
-    display: grid;
-    gap: 24px;
-    align-items: start;
-    margin-bottom: 40px;
+  .home-carousel {
+    position: relative;
+    min-height: clamp(520px, calc(100vh - 142px), 760px);
+    width: 100vw;
+    margin: -40px 0 -56px calc(50% - 50vw);
+    overflow: hidden;
+    isolation: isolate;
+    background: #111827;
+  }
+
+  .carousel-track,
+  .carousel-slide,
+  .carousel-overlay {
+    position: absolute;
+    inset: 0;
+  }
+
+  .carousel-slide {
+    opacity: 0;
+    animation: fadeSlide var(--duration) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+
+  .carousel-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.04);
+    animation: slowZoom var(--duration) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+
+  .carousel-slide figcaption {
+    position: absolute;
+    right: clamp(18px, 4vw, 56px);
+    bottom: clamp(18px, 4vw, 48px);
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: var(--radius-sm);
+    background: rgba(15, 23, 42, 0.46);
+    color: #ffffff;
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    backdrop-filter: blur(10px);
+  }
+
+  .carousel-overlay {
+    z-index: 1;
+    background:
+      linear-gradient(90deg, rgba(8, 13, 24, 0.8) 0%, rgba(8, 13, 24, 0.46) 42%, rgba(8, 13, 24, 0.1) 100%),
+      linear-gradient(180deg, rgba(8, 13, 24, 0.2) 0%, rgba(8, 13, 24, 0.5) 100%);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    min-height: inherit;
+    width: min(100% - 32px, 1100px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    color: #ffffff;
   }
 
   .eyebrow {
-    margin-bottom: 8px;
-    color: var(--color-primary);
-    font-size: 0.9rem;
-    font-weight: 700;
-    text-transform: uppercase;
+    margin-bottom: 12px;
+    color: #bfdbfe;
+    font-size: 0.88rem;
+    font-weight: 800;
     letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
   h1 {
-    font-size: clamp(2.2rem, 5vw, 3.8rem);
-    line-height: 1.05;
+    max-width: 760px;
     margin-bottom: 16px;
+    font-size: clamp(2.4rem, 6vw, 5.4rem);
+    line-height: 1;
+    text-wrap: balance;
   }
 
-  .lead {
-    max-width: 640px;
-    color: var(--text-secondary);
-    font-size: 1.05rem;
+  .hero-subtitle {
+    max-width: 560px;
+    margin-bottom: 28px;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: clamp(1.1rem, 2vw, 1.35rem);
+    font-weight: 600;
   }
 
-  .como-funciona {
-    display: grid;
-    gap: 16px;
-  }
-
-  .step-card {
-    padding: 20px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--bg-card);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .step-number {
+  .hero-action {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    margin-bottom: 16px;
-    border-radius: 999px;
-    background: var(--color-primary-light);
-    color: var(--color-primary);
-    font-weight: 700;
+    min-height: 46px;
+    padding: 11px 18px;
+    border-radius: var(--radius-sm);
+    background: var(--color-primary);
+    color: var(--text-on-primary);
+    font-weight: 800;
+    box-shadow: var(--shadow-md);
+    transition:
+      transform var(--transition),
+      background-color var(--transition),
+      box-shadow var(--transition);
   }
 
-  .step-card h2 {
-    margin-bottom: 10px;
-    font-size: 1.1rem;
+  .hero-action:hover {
+    transform: translateY(-1px);
+    background: var(--color-primary-hover);
   }
 
-  .step-card p {
-    color: var(--text-secondary);
+  .hero-action:active {
+    transform: scale(0.97);
   }
 
-  @media (min-width: 768px) {
-    .hero {
-      grid-template-columns: 1.3fr 0.9fr;
-      margin-bottom: 56px;
+  @keyframes fadeSlide {
+    0%,
+    13% {
+      opacity: 1;
     }
 
-    .como-funciona {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+    19%,
+    94% {
+      opacity: 0;
     }
 
+    100% {
+      opacity: 1;
+    }
   }
 
-  @media (max-width: 700px) {
-    .como-funciona {
-      grid-template-columns: 1fr;
+  @keyframes slowZoom {
+    0% {
+      transform: scale(1.04);
+    }
+
+    50% {
+      transform: scale(1.1);
+    }
+
+    100% {
+      transform: scale(1.04);
+    }
+  }
+
+  @media (max-width: 760px) {
+    .home-carousel {
+      min-height: calc(100vh - 176px);
+    }
+
+    .carousel-overlay {
+      background:
+        linear-gradient(180deg, rgba(8, 13, 24, 0.72) 0%, rgba(8, 13, 24, 0.58) 48%, rgba(8, 13, 24, 0.72) 100%);
+    }
+
+    .hero-content {
+      align-items: center;
+      text-align: center;
+    }
+
+    .carousel-slide figcaption {
+      right: 16px;
+      left: 16px;
+      bottom: 18px;
+      text-align: center;
     }
   }
 </style>
