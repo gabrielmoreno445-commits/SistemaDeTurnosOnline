@@ -27,7 +27,8 @@ const formulario = reactive({
   especialidad: '',
   telefono: '',
   descripcion: '',
-  direccion: ''
+  direccion: '',
+  zona_cobertura: 'Eldorado, Misiones y hasta 15 km a la redonda'
 });
 
 const passwords = reactive({
@@ -70,6 +71,7 @@ function completarFormularioDesdeSesion() {
   formulario.telefono = profesional.value?.telefono || '';
   formulario.descripcion = profesional.value?.descripcion || '';
   formulario.direccion = profesional.value?.direccion || '';
+  formulario.zona_cobertura = profesional.value?.zona_cobertura || 'Eldorado, Misiones y hasta 15 km a la redonda';
   fotoUrl.value = profesional.value?.foto_url || null;
 }
 
@@ -288,6 +290,15 @@ onMounted(async () => {
                 v-model="formulario.direccion"
                 type="text"
                 placeholder="Dirección de tu consultorio o local"
+              />
+            </label>
+
+            <label class="form-grid__full">
+              <span>Zona de cobertura</span>
+              <input
+                v-model="formulario.zona_cobertura"
+                type="text"
+                placeholder="Eldorado, Misiones y hasta 15 km a la redonda"
               />
             </label>
           </div>

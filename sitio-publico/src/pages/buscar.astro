@@ -14,6 +14,20 @@ const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:4000'
 let resultados = [];
 let error = false;
 
+function obtenerModalidades(profesional) {
+  const modalidades = [];
+
+  if (Number(profesional.atiende_en_local) === 1) {
+    modalidades.push('Local');
+  }
+
+  if (Number(profesional.atiende_a_domicilio) === 1) {
+    modalidades.push('A domicilio');
+  }
+
+  return modalidades.length > 0 ? modalidades : ['Local'];
+}
+
 if (query.trim().length >= 2) {
   try {
     const res = await fetch(`${API_URL}/busqueda?q=${encodeURIComponent(query.trim())}`);
@@ -69,6 +83,14 @@ if (query.trim().length >= 2) {
             )}
             <h2>{prof.nombre}</h2>
             <p>{prof.especialidad || 'Especialidad no informada'}</p>
+            <div class="modalidades-row">
+              {obtenerModalidades(prof).map((modalidad) => (
+                <span class="modalidad-chip">{modalidad}</span>
+              ))}
+            </div>
+            {Number(prof.atiende_a_domicilio) === 1 && prof.zona_cobertura && (
+              <p class="zona-cobertura">{prof.zona_cobertura}</p>
+            )}
           </a>
         ))}
       </div>
@@ -160,6 +182,28 @@ if (query.trim().length >= 2) {
 
   .resultado-card p {
     color: var(--text-secondary);
+  }
+
+  .modalidades-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 0.85rem;
+  }
+
+  .modalidad-chip {
+    width: fit-content;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .zona-cobertura {
+    margin-top: 0.7rem;
+    font-size: 0.9rem;
   }
 
   @media (max-width: 768px) {

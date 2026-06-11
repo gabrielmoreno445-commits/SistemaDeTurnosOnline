@@ -29,6 +29,11 @@ const ESTILOS_ESTADO = {
   cancelado: 'badge--cancelado'
 };
 
+const ETIQUETAS_MODALIDAD = {
+  local: 'En el local',
+  domicilio: 'A domicilio'
+};
+
 // Consulta los turnos de la fecha visible usando el token del profesional.
 // Se llama al montar y tambien cada vez que el usuario cambia el dia consultado.
 async function cargarTurnos() {
@@ -154,6 +159,16 @@ watch(fecha, async () => {
 
             <div class="turno-card__details">
               <p><strong>Servicio:</strong> {{ turno.servicio_nombre }}</p>
+              <p>
+                <strong>Modalidad:</strong>
+                {{ ETIQUETAS_MODALIDAD[turno.modalidad_atencion] || 'En el local' }}
+              </p>
+              <p v-if="turno.direccion_cliente">
+                <strong>Direccion:</strong> {{ turno.direccion_cliente }}
+              </p>
+              <p v-if="turno.notas_cliente">
+                <strong>Notas:</strong> {{ turno.notas_cliente }}
+              </p>
               <p><strong>Email:</strong> {{ turno.cliente_email }}</p>
               <p v-if="turno.cliente_telefono">
                 <strong>Telefono:</strong> {{ turno.cliente_telefono }}

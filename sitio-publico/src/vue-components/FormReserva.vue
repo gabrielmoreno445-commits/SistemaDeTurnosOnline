@@ -8,10 +8,13 @@
       <p class="success-eyebrow">Reserva confirmada</p>
       <h2>Turno reservado</h2>
       <p>
-        Te esperamos el {{ fechaFormateadaExito }} a las {{ horarioSeleccionado }}.
+        {{ mensajeExito }}
       </p>
       <p>
         Servicio: {{ servicioSeleccionado?.nombre }} con {{ profesionalNombre }}
+      </p>
+      <p v-if="modalidadSeleccionada === 'domicilio'">
+        Direccion: {{ direccionCliente }}
       </p>
     </div>
 
@@ -44,6 +47,9 @@
             <span v-if="servicio.precio !== null && servicio.precio !== undefined">
               ${{ formatearPrecio(servicio.precio) }}
             </span>
+            <span class="modalidad-tag">
+              {{ obtenerEtiquetaModalidad(servicio.modalidad_atencion) }}
+            </span>
           </button>
         </div>
       </section>
@@ -51,6 +57,39 @@
       <section v-if="servicioSeleccionado" class="step-block">
         <div class="step-header">
           <span class="step-number">2</span>
+          <div>
+            <h2>Modalidad</h2>
+            <p>{{ textoModalidadServicio }}</p>
+          </div>
+        </div>
+
+        <div v-if="servicioSeleccionado.modalidad_atencion === 'ambas'" class="modalidad-options">
+          <button
+            type="button"
+            class="slot-button"
+            :class="{ selected: modalidadSeleccionada === 'local' }"
+            @click="modalidadSeleccionada = 'local'"
+          >
+            En el local
+          </button>
+          <button
+            type="button"
+            class="slot-button"
+            :class="{ selected: modalidadSeleccionada === 'domicilio' }"
+            @click="modalidadSeleccionada = 'domicilio'"
+          >
+            A domicilio
+          </button>
+        </div>
+
+        <p v-else class="hint">
+          {{ obtenerEtiquetaModalidad(servicioSeleccionado.modalidad_atencion) }}
+        </p>
+      </section>
+
+      <section v-if="servicioSeleccionado && modalidadSeleccionada" class="step-block">
+        <div class="step-header">
+          <span class="step-number">3</span>
           <div>
             <h2>Elegi una fecha</h2>
             <p>Solo se muestran horarios vigentes para el dia elegido.</p>
@@ -65,9 +104,9 @@
         />
       </section>
 
-      <section v-if="servicioSeleccionado && fechaSeleccionada" class="step-block">
+      <section v-if="servicioSeleccionado && modalidadSeleccionada && fechaSeleccionada" class="step-block">
         <div class="step-header">
-          <span class="step-number">3</span>
+          <span class="step-number">4</span>
           <div>
             <h2>Elegi un horario</h2>
             <p>Los horarios ocupados o pasados se excluyen automaticamente.</p>
@@ -99,7 +138,7 @@
 
       <section v-if="horarioSeleccionado" class="step-block">
         <div class="step-header">
-          <span class="step-number">4</span>
+          <span class="step-number">5</span>
           <div>
             <h2>Tus datos</h2>
             <p>Completa la informacion necesaria para registrar la reserva.</p>
@@ -120,6 +159,24 @@
           <label>
             <span>Telefono</span>
             <input v-model="clienteTelefono" type="text" />
+          </label>
+
+          <label v-if="modalidadSeleccionada === 'domicilio'" class="form-grid__full">
+            <span>Direccion donde necesitas el servicio</span>
+            <input
+              v-model="direccionCliente"
+              type="text"
+              placeholder="Eldorado, barrio, calle, numero o referencia"
+            />
+          </label>
+
+          <label class="form-grid__full">
+            <span>Notas para el profesional</span>
+            <textarea
+              v-model="notasCliente"
+              rows="3"
+              placeholder="Ej: entre calles, detalle del trabajo o referencia de llegada"
+            ></textarea>
           </label>
 
           <button class="submit-button" type="submit" :disabled="cargando">
@@ -159,6 +216,7 @@ export default {
     const disponibilidad = ref([]);
 
     const servicioSeleccionado = ref(null);
+    const modalidadSeleccionada = ref('');
     const fechaSeleccionada = ref('');
     const horariosDisponibles = ref([]);
     const horarioSeleccionado = ref('');
@@ -166,6 +224,8 @@ export default {
     const clienteNombre = ref('');
     const clienteEmail = ref('');
     const clienteTelefono = ref('');
+    const direccionCliente = ref('');
+    const notasCliente = ref('');
 
     const cargando = ref(false);
     const cargandoInicial = ref(true);
@@ -175,6 +235,12 @@ export default {
     const profesionalNombre = ref('');
 
     const fechaMinima = new Date().toISOString().slice(0, 10);
+
+    const ETIQUETAS_MODALIDAD = {
+      local: 'En el local',
+      domicilio: 'A domicilio',
+      ambas: 'Local + domicilio'
+    };
 
     // Genera una etiqueta amigable para la fecha reservada una vez confirmada.
     // Se usa en el estado de exito para resumir claramente que se reservo.
@@ -192,6 +258,32 @@ export default {
       });
     });
 
+    const mensajeExito = computed(() => {
+      const base = `${fechaFormateadaExito.value} a las ${horarioSeleccionado.value}`;
+
+      if (modalidadSeleccionada.value === 'domicilio') {
+        return `El profesional ira a tu domicilio el ${base}.`;
+      }
+
+      return `Te esperamos el ${base}.`;
+    });
+
+    const textoModalidadServicio = computed(() => {
+      if (!servicioSeleccionado.value) {
+        return '';
+      }
+
+      if (servicioSeleccionado.value.modalidad_atencion === 'ambas') {
+        return 'Elegí si querés ir al local o recibir al profesional donde estés.';
+      }
+
+      if (servicioSeleccionado.value.modalidad_atencion === 'domicilio') {
+        return 'Este servicio se realiza a domicilio dentro de la zona de cobertura.';
+      }
+
+      return 'Este servicio se realiza en el local del profesional.';
+    });
+
     // Convierte horas HH:MM a minutos enteros para poder comparar rangos.
     // Esta base numerica simplifica el calculo de slots dentro de cada bloque.
     function horaAMinutos(hora) {
@@ -206,6 +298,18 @@ export default {
       const minutos = totalMinutos % 60;
 
       return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+    }
+
+    function haySolapamiento(inicioSlot, duracionSlot, turnosOcupados) {
+      const inicio = horaAMinutos(inicioSlot);
+      const fin = inicio + Number(duracionSlot);
+
+      return turnosOcupados.some((turno) => {
+        const inicioOcupado = horaAMinutos(turno.hora_inicio);
+        const finOcupado = inicioOcupado + Number(turno.duracion_minutos);
+
+        return inicio < finOcupado && fin > inicioOcupado;
+      });
     }
 
     // Devuelve el indice de dia de la semana esperado por el backend.
@@ -234,6 +338,10 @@ export default {
       return Number(precio).toLocaleString('es-AR');
     }
 
+    function obtenerEtiquetaModalidad(modalidad) {
+      return ETIQUETAS_MODALIDAD[modalidad] || ETIQUETAS_MODALIDAD.local;
+    }
+
     // Resetea mensajes y seleccion de horario cuando cambia el contexto de reserva.
     // Asi evitamos dejar estados viejos visibles despues de nuevas elecciones.
     function limpiarEstadoReserva() {
@@ -246,6 +354,10 @@ export default {
     // Tambien limpia estados derivados para no mezclar una reserva anterior con otra.
     function seleccionarServicio(servicio) {
       servicioSeleccionado.value = servicio;
+      modalidadSeleccionada.value = servicio.modalidad_atencion === 'ambas'
+        ? ''
+        : servicio.modalidad_atencion || 'local';
+      fechaSeleccionada.value = '';
       horariosDisponibles.value = [];
       limpiarEstadoReserva();
     }
@@ -312,10 +424,6 @@ export default {
           return;
         }
 
-        const horariosOcupados = new Set(
-          ocupados.map((turno) => turno.hora_inicio.slice(0, 5))
-        );
-
         const diaSemana = obtenerDiaSemana(fechaSeleccionada.value);
         const bloquesDelDia = disponibilidad.value.filter(
           (bloque) => Number(bloque.dia_semana) === diaSemana
@@ -331,7 +439,10 @@ export default {
           while ((minutoActual + duracion) <= minutoFin) {
             const slot = minutosAHora(minutoActual);
 
-            if (!horariosOcupados.has(slot) && !esHorarioPasado(fechaSeleccionada.value, slot)) {
+            if (
+              !haySolapamiento(slot, duracion, ocupados) &&
+              !esHorarioPasado(fechaSeleccionada.value, slot)
+            ) {
               slots.push(slot);
             }
 
@@ -359,12 +470,20 @@ export default {
         return 'Debes seleccionar una fecha';
       }
 
+      if (!modalidadSeleccionada.value) {
+        return 'Debes seleccionar una modalidad';
+      }
+
       if (!horarioSeleccionado.value) {
         return 'Debes seleccionar un horario';
       }
 
       if (!clienteNombre.value || !clienteEmail.value) {
         return 'Nombre y email son obligatorios';
+      }
+
+      if (modalidadSeleccionada.value === 'domicilio' && !direccionCliente.value) {
+        return 'La direccion es obligatoria para servicios a domicilio';
       }
 
       return null;
@@ -395,6 +514,9 @@ export default {
             cliente_nombre: clienteNombre.value,
             cliente_email: clienteEmail.value,
             cliente_telefono: clienteTelefono.value,
+            modalidad_atencion: modalidadSeleccionada.value,
+            direccion_cliente: direccionCliente.value,
+            notas_cliente: notasCliente.value,
             fecha: fechaSeleccionada.value,
             hora_inicio: horarioSeleccionado.value
           })
@@ -423,13 +545,17 @@ export default {
     }
 
     watch(
-      [fechaSeleccionada, servicioSeleccionado],
-      async ([nuevaFecha, nuevoServicio], [fechaAnterior, servicioAnterior]) => {
+      [fechaSeleccionada, servicioSeleccionado, modalidadSeleccionada],
+      async ([nuevaFecha, nuevoServicio, nuevaModalidad], [fechaAnterior, servicioAnterior, modalidadAnterior]) => {
         if (nuevaFecha !== fechaAnterior || nuevoServicio?.id !== servicioAnterior?.id) {
           limpiarEstadoReserva();
         }
 
-        if (nuevaFecha && nuevoServicio) {
+        if (nuevaModalidad !== modalidadAnterior) {
+          horarioSeleccionado.value = '';
+        }
+
+        if (nuevaFecha && nuevoServicio && nuevaModalidad) {
           await recalcularHorarios();
           return;
         }
@@ -450,6 +576,7 @@ export default {
       clienteNombre,
       clienteTelefono,
       confirmarReserva,
+      direccionCliente,
       error,
       exito,
       fechaFormateadaExito,
@@ -458,9 +585,14 @@ export default {
       formatearPrecio,
       horarioSeleccionado,
       horariosDisponibles,
+      mensajeExito,
+      modalidadSeleccionada,
+      notasCliente,
+      obtenerEtiquetaModalidad,
       profesionalNombre,
       seleccionarServicio,
       servicioSeleccionado,
+      textoModalidadServicio,
       servicios
     };
   }
@@ -515,7 +647,8 @@ export default {
   }
 
   .services-grid,
-  .slots-grid {
+  .slots-grid,
+  .modalidad-options {
     display: grid;
     gap: 12px;
   }
@@ -544,6 +677,16 @@ export default {
     color: var(--text-secondary);
   }
 
+  .modalidad-tag {
+    width: fit-content;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: var(--color-primary-light);
+    color: var(--color-primary) !important;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
   .service-card.selected,
   .slot-button.selected {
     border-color: var(--color-primary);
@@ -556,17 +699,20 @@ export default {
   }
 
   .date-input,
-  .form-grid input {
+  .form-grid input,
+  .form-grid textarea {
     width: 100%;
     padding: 14px 16px;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     background: var(--bg-card);
     color: var(--text-primary);
+    font: inherit;
   }
 
   .date-input:focus,
-  .form-grid input:focus {
+  .form-grid input:focus,
+  .form-grid textarea:focus {
     outline: 2px solid transparent;
     border-color: var(--border-focus);
   }
@@ -583,6 +729,14 @@ export default {
 
   .form-grid span {
     font-weight: 600;
+  }
+
+  .form-grid__full {
+    grid-column: 1 / -1;
+  }
+
+  .form-grid textarea {
+    resize: vertical;
   }
 
   .submit-button {

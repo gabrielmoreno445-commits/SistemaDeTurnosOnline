@@ -27,8 +27,15 @@ const error = ref(null);
 const formulario = reactive({
   nombre: '',
   duracion_minutos: 30,
-  precio: ''
+  precio: '',
+  modalidad_atencion: 'local'
 });
+
+const ETIQUETAS_MODALIDAD = {
+  local: 'En el local',
+  domicilio: 'A domicilio',
+  ambas: 'Local + domicilio'
+};
 
 // Reconsulta servicios activos del profesional para mantener la lista sincronizada.
 // Se reutiliza despues de crear, editar o desactivar para no duplicar logica.
@@ -53,6 +60,7 @@ function limpiarFormulario() {
   formulario.nombre = '';
   formulario.duracion_minutos = 30;
   formulario.precio = '';
+  formulario.modalidad_atencion = 'local';
   editando.value = null;
 }
 
@@ -71,6 +79,7 @@ function iniciarEdicion(servicio) {
   formulario.nombre = servicio.nombre;
   formulario.duracion_minutos = servicio.duracion_minutos;
   formulario.precio = servicio.precio ?? '';
+  formulario.modalidad_atencion = servicio.modalidad_atencion || 'local';
   editando.value = servicio;
   mostrarFormulario.value = true;
   error.value = null;
@@ -94,7 +103,8 @@ async function guardarServicio() {
   const payload = {
     nombre: formulario.nombre,
     duracion_minutos: Number(formulario.duracion_minutos),
-    precio: formulario.precio === '' ? null : Number(formulario.precio)
+    precio: formulario.precio === '' ? null : Number(formulario.precio),
+    modalidad_atencion: formulario.modalidad_atencion
   };
 
   try {
@@ -173,6 +183,15 @@ onMounted(async () => {
               <span>Precio</span>
               <input v-model="formulario.precio" type="number" min="0" step="0.01" />
             </label>
+
+            <label>
+              <span>Modalidad</span>
+              <select v-model="formulario.modalidad_atencion">
+                <option value="local">En el local</option>
+                <option value="domicilio">A domicilio</option>
+                <option value="ambas">Local + domicilio</option>
+              </select>
+            </label>
           </div>
 
           <div class="actions">
@@ -205,6 +224,9 @@ onMounted(async () => {
               <p>{{ servicio.duracion_minutos }} minutos</p>
               <p v-if="servicio.precio !== null && servicio.precio !== undefined">
                 ${{ Number(servicio.precio).toLocaleString('es-AR') }}
+              </p>
+              <p class="modalidad-pill">
+                {{ ETIQUETAS_MODALIDAD[servicio.modalidad_atencion] || 'En el local' }}
               </p>
             </div>
 
@@ -291,10 +313,12 @@ onMounted(async () => {
   font-weight: 600;
 }
 
-.form-grid input {
+.form-grid input,
+.form-grid select {
   padding: 10px 12px;
   border: 1px solid var(--color-border, #d0d5dd);
   border-radius: var(--radius-md, 0.75rem);
+  background: var(--color-input-bg, #ffffff);
 }
 
 .message {
@@ -321,6 +345,18 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 18px;
+}
+
+.modalidad-pill {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--color-primary-soft, #eef4ff);
+  color: var(--color-primary, #111827);
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
 .actions {

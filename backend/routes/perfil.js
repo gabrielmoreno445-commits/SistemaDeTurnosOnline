@@ -20,7 +20,7 @@ router.use(authMiddleware);
 // Se reutiliza luego de actualizar para que la respuesta refleje el estado real en base.
 async function obtenerPerfilProfesional(profesionalId) {
   const [rows] = await pool.query(
-    `SELECT id, nombre, email, slug, especialidad, telefono, descripcion, direccion, foto_url, created_at
+    `SELECT id, nombre, email, slug, especialidad, telefono, descripcion, direccion, zona_cobertura, foto_url, created_at
      FROM profesionales
      WHERE id = ?
      LIMIT 1`,
@@ -52,7 +52,7 @@ async function eliminarFotoDelDisco(fotoUrl) {
 // No permite cambiar email ni slug para preservar los identificadores unicos del sistema.
 router.put('/', async (req, res) => {
   try {
-    const camposPermitidos = ['nombre', 'especialidad', 'telefono', 'descripcion', 'direccion'];
+    const camposPermitidos = ['nombre', 'especialidad', 'telefono', 'descripcion', 'direccion', 'zona_cobertura'];
     const updates = [];
     const valores = [];
 

@@ -39,14 +39,22 @@ const perfil = reactive({
   especialidad: '',
   descripcion: '',
   direccion: '',
+  zona_cobertura: 'Eldorado, Misiones y hasta 15 km a la redonda',
   telefono: ''
 });
 
 const nuevoServicio = reactive({
   nombre: '',
   duracion_minutos: 30,
-  precio: ''
+  precio: '',
+  modalidad_atencion: 'local'
 });
+
+const ETIQUETAS_MODALIDAD = {
+  local: 'En el local',
+  domicilio: 'A domicilio',
+  ambas: 'Local + domicilio'
+};
 
 const nuevoBloque = reactive({
   dia_semana: 1,
@@ -74,6 +82,7 @@ function precargarPerfil() {
   perfil.especialidad = authStore.profesional?.especialidad || '';
   perfil.descripcion = authStore.profesional?.descripcion || '';
   perfil.direccion = authStore.profesional?.direccion || '';
+  perfil.zona_cobertura = authStore.profesional?.zona_cobertura || 'Eldorado, Misiones y hasta 15 km a la redonda';
   perfil.telefono = authStore.profesional?.telefono || '';
 }
 
@@ -151,12 +160,14 @@ async function agregarServicio() {
     await crearServicio(authStore.token, {
       nombre: nuevoServicio.nombre,
       duracion_minutos: Number(nuevoServicio.duracion_minutos),
-      precio: nuevoServicio.precio === '' ? null : Number(nuevoServicio.precio)
+      precio: nuevoServicio.precio === '' ? null : Number(nuevoServicio.precio),
+      modalidad_atencion: nuevoServicio.modalidad_atencion
     });
 
     nuevoServicio.nombre = '';
     nuevoServicio.duracion_minutos = 30;
     nuevoServicio.precio = '';
+    nuevoServicio.modalidad_atencion = 'local';
     servicios.value = await obtenerServicios(authStore.token);
   } catch (fetchError) {
     error.value = fetchError.message;
@@ -299,6 +310,11 @@ onMounted(async () => {
             <input v-model="perfil.direccion" type="text" />
           </label>
 
+          <label>
+            <span>Zona de cobertura</span>
+            <input v-model="perfil.zona_cobertura" type="text" />
+          </label>
+
           <label class="form-grid__full">
             <span>Descripcion</span>
             <textarea v-model="perfil.descripcion" rows="4" />
@@ -322,6 +338,11 @@ onMounted(async () => {
           <input v-model="nuevoServicio.nombre" type="text" placeholder="Nombre del servicio" />
           <input v-model="nuevoServicio.duracion_minutos" type="number" min="15" step="15" />
           <input v-model="nuevoServicio.precio" type="number" min="0" step="0.01" placeholder="Precio" />
+          <select v-model="nuevoServicio.modalidad_atencion">
+            <option value="local">En el local</option>
+            <option value="domicilio">A domicilio</option>
+            <option value="ambas">Local + domicilio</option>
+          </select>
           <button class="button button--secondary" type="button" :disabled="cargando" @click="agregarServicio">
             Agregar
           </button>
@@ -330,7 +351,10 @@ onMounted(async () => {
         <div class="items-list">
           <article v-for="servicio in servicios" :key="servicio.id" class="item-row">
             <span>{{ servicio.nombre }}</span>
-            <small>{{ servicio.duracion_minutos }} minutos</small>
+            <small>
+              {{ servicio.duracion_minutos }} minutos ·
+              {{ ETIQUETAS_MODALIDAD[servicio.modalidad_atencion] || 'En el local' }}
+            </small>
           </article>
         </div>
 

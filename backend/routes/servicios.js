@@ -16,7 +16,7 @@ router.use(authMiddleware);
 // Esto evita repetir consultas y asegura que alta, edicion y baja usen el mismo criterio.
 async function obtenerServicioDelProfesional(servicioId, profesionalId) {
   const [rows] = await pool.query(
-    `SELECT id, profesional_id, nombre, duracion_minutos, precio, activo, created_at
+    `SELECT id, profesional_id, nombre, duracion_minutos, precio, modalidad_atencion, activo, created_at
      FROM servicios
      WHERE id = ? AND profesional_id = ?
      LIMIT 1`,
@@ -28,13 +28,19 @@ async function obtenerServicioDelProfesional(servicioId, profesionalId) {
 
 // Valida los datos basicos de un servicio antes de crear o actualizar.
 // Mantiene reglas simples para evitar servicios vacios o con duraciones invalidas.
-function validarServicio(nombre, duracionMinutos) {
+const MODALIDADES_SERVICIO_VALIDAS = ['local', 'domicilio', 'ambas'];
+
+function validarServicio(nombre, duracionMinutos, modalidadAtencion = 'local') {
   if (!nombre || !duracionMinutos) {
     return 'Nombre y duracion_minutos son obligatorios';
   }
 
   if (Number(duracionMinutos) <= 0) {
     return 'La duracion_minutos debe ser mayor a 0';
+  }
+
+  if (!MODALIDADES_SERVICIO_VALIDAS.includes(modalidadAtencion)) {
+    return 'La modalidad_atencion debe ser local, domicilio o ambas';
   }
 
   return null;
@@ -46,7 +52,7 @@ function validarServicio(nombre, duracionMinutos) {
 router.get('/', async (req, res) => {
   try {
     const [rows] = await pool.query(
-      `SELECT id, profesional_id, nombre, duracion_minutos, precio, activo, created_at
+      `SELECT id, profesional_id, nombre, duracion_minutos, precio, modalidad_atencion, activo, created_at
        FROM servicios
        WHERE profesional_id = ? AND activo = 1
        ORDER BY created_at DESC`,
@@ -66,8 +72,9 @@ router.get('/', async (req, res) => {
 // profesional_id sale del JWT para impedir altas sobre cuentas ajenas.
 router.post('/', async (req, res) => {
   try {
-    const { nombre, duracion_minutos, precio } = req.body;
-    const errorValidacion = validarServicio(nombre, duracion_minutos);
+    const { nombre, duracion_minutos, precio, modalidad_atencion } = req.body;
+    const modalidadAtencion = modalidad_atencion || 'local';
+    const errorValidacion = validarServicio(nombre, duracion_minutos, modalidadAtencion);
 
     if (errorValidacion) {
       return res.status(400).json({
@@ -76,9 +83,9 @@ router.post('/', async (req, res) => {
     }
 
     const [result] = await pool.query(
-      `INSERT INTO servicios (profesional_id, nombre, duracion_minutos, precio)
-       VALUES (?, ?, ?, ?)`,
-      [req.profesional.id, nombre, Number(duracion_minutos), precio || null]
+      `INSERT INTO servicios (profesional_id, nombre, duracion_minutos, precio, modalidad_atencion)
+       VALUES (?, ?, ?, ?, ?)`,
+      [req.profesional.id, nombre, Number(duracion_minutos), precio || null, modalidadAtencion]
     );
 
     const servicioCreado = await obtenerServicioDelProfesional(result.insertId, req.profesional.id);
@@ -96,7 +103,7 @@ router.post('/', async (req, res) => {
 // La verificacion previa evita modificaciones cruzadas entre profesionales.
 router.put('/:id', async (req, res) => {
   try {
-    const { nombre, duracion_minutos, precio } = req.body;
+    const { nombre, duracion_minutos, precio, modalidad_atencion } = req.body;
     const servicioId = req.params.id;
 
     const servicio = await obtenerServicioDelProfesional(servicioId, req.profesional.id);
@@ -109,7 +116,8 @@ router.put('/:id', async (req, res) => {
 
     const nombreActualizado = nombre || servicio.nombre;
     const duracionActualizada = duracion_minutos || servicio.duracion_minutos;
-    const errorValidacion = validarServicio(nombreActualizado, duracionActualizada);
+    const modalidadActualizada = modalidad_atencion || servicio.modalidad_atencion;
+    const errorValidacion = validarServicio(nombreActualizado, duracionActualizada, modalidadActualizada);
 
     if (errorValidacion) {
       return res.status(400).json({
@@ -119,12 +127,13 @@ router.put('/:id', async (req, res) => {
 
     await pool.query(
       `UPDATE servicios
-       SET nombre = ?, duracion_minutos = ?, precio = ?
+       SET nombre = ?, duracion_minutos = ?, precio = ?, modalidad_atencion = ?
        WHERE id = ? AND profesional_id = ?`,
       [
         nombreActualizado,
         Number(duracionActualizada),
         precio !== undefined ? precio : servicio.precio,
+        modalidadActualizada,
         servicioId,
         req.profesional.id
       ]

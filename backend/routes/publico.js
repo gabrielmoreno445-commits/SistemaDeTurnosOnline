@@ -14,7 +14,7 @@ const router = express.Router();
 // Evita filtrar informacion sensible del panel hacia el sitio abierto.
 async function obtenerProfesionalPublicoPorSlug(slug) {
   const [rows] = await pool.query(
-    `SELECT id, nombre, especialidad, slug, descripcion, direccion, foto_url
+    `SELECT id, nombre, especialidad, slug, descripcion, direccion, zona_cobertura, foto_url
      FROM profesionales
      WHERE slug = ?
      LIMIT 1`,
@@ -28,7 +28,7 @@ async function obtenerProfesionalPublicoPorSlug(slug) {
 // Asi el cliente solo puede reservar opciones vigentes del perfil visitado.
 async function obtenerServicioActivoDelProfesional(servicioId, profesionalId) {
   const [rows] = await pool.query(
-    `SELECT id, profesional_id, nombre, duracion_minutos, precio, activo
+    `SELECT id, profesional_id, nombre, duracion_minutos, precio, modalidad_atencion, activo
      FROM servicios
      WHERE id = ? AND profesional_id = ? AND activo = 1
      LIMIT 1`,
@@ -71,7 +71,7 @@ router.get('/:slug/servicios', async (req, res) => {
     }
 
     const [rows] = await pool.query(
-      `SELECT id, profesional_id, nombre, duracion_minutos, precio, activo, created_at
+      `SELECT id, profesional_id, nombre, duracion_minutos, precio, modalidad_atencion, activo, created_at
        FROM servicios
        WHERE profesional_id = ? AND activo = 1
        ORDER BY created_at DESC`,
@@ -179,6 +179,9 @@ router.post('/turnos', async (req, res) => {
       cliente_nombre,
       cliente_email,
       cliente_telefono,
+      modalidad_atencion,
+      direccion_cliente,
+      notas_cliente,
       fecha,
       hora_inicio
     } = req.body;
@@ -205,15 +208,40 @@ router.post('/turnos', async (req, res) => {
       });
     }
 
+    const modalidadElegida = modalidad_atencion || servicio.modalidad_atencion;
+
+    if (!['local', 'domicilio'].includes(modalidadElegida)) {
+      return res.status(400).json({
+        error: 'La modalidad_atencion debe ser local o domicilio'
+      });
+    }
+
+    if (servicio.modalidad_atencion !== 'ambas' && modalidadElegida !== servicio.modalidad_atencion) {
+      return res.status(400).json({
+        error: 'La modalidad elegida no esta disponible para este servicio'
+      });
+    }
+
+    if (modalidadElegida === 'domicilio' && !direccion_cliente) {
+      return res.status(400).json({
+        error: 'La direccion_cliente es obligatoria para turnos a domicilio'
+      });
+    }
+
+    const inicioNuevo = hora_inicio;
+    const finNuevo = sumarMinutosAHora(hora_inicio, servicio.duracion_minutos);
+
     const [turnosExistentes] = await pool.query(
-      `SELECT id
-       FROM turnos
-       WHERE profesional_id = ?
-         AND fecha = ?
-         AND hora_inicio = ?
-         AND estado IN ('pendiente', 'confirmado')
+      `SELECT t.id
+       FROM turnos t
+       INNER JOIN servicios s ON s.id = t.servicio_id
+       WHERE t.profesional_id = ?
+         AND t.fecha = ?
+         AND t.estado IN ('pendiente', 'confirmado')
+         AND t.hora_inicio < ?
+         AND ADDTIME(t.hora_inicio, SEC_TO_TIME(s.duracion_minutos * 60)) > ?
        LIMIT 1`,
-      [profesional.id, fecha, hora_inicio]
+      [profesional.id, fecha, finNuevo, inicioNuevo]
     );
 
     if (turnosExistentes.length > 0) {
@@ -229,16 +257,22 @@ router.post('/turnos', async (req, res) => {
          cliente_nombre,
          cliente_email,
          cliente_telefono,
+         modalidad_atencion,
+         direccion_cliente,
+         notas_cliente,
          fecha,
          hora_inicio,
          estado
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pendiente')`,
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente')`,
       [
         profesional.id,
         servicio.id,
         cliente_nombre,
         cliente_email,
         cliente_telefono || null,
+        modalidadElegida,
+        modalidadElegida === 'domicilio' ? direccion_cliente : null,
+        notas_cliente || null,
         fecha,
         hora_inicio
       ]
@@ -253,10 +287,13 @@ router.post('/turnos', async (req, res) => {
         <h2>¡Tu turno está reservado!</h2>
         <p><strong>Profesional:</strong> ${profesional.nombre}</p>
         <p><strong>Servicio:</strong> ${servicio.nombre}</p>
+        <p><strong>Modalidad:</strong> ${modalidadElegida === 'domicilio' ? 'A domicilio' : 'En el local'}</p>
         <p><strong>Fecha:</strong> ${fecha}</p>
         <p><strong>Hora:</strong> ${hora_inicio}</p>
         <p><strong>Estado:</strong> Pendiente de confirmación</p>
-        ${profesional.direccion ? `<p><strong>Dirección:</strong> ${profesional.direccion}</p>` : ''}
+        ${modalidadElegida === 'domicilio' ? `<p><strong>Dirección del cliente:</strong> ${direccion_cliente}</p>` : ''}
+        ${modalidadElegida === 'local' && profesional.direccion ? `<p><strong>Dirección:</strong> ${profesional.direccion}</p>` : ''}
+        ${notas_cliente ? `<p><strong>Notas:</strong> ${notas_cliente}</p>` : ''}
       `
     });
 
@@ -270,5 +307,14 @@ router.post('/turnos', async (req, res) => {
     });
   }
 });
+
+function sumarMinutosAHora(hora, minutos) {
+  const [horas, mins] = hora.slice(0, 5).split(':').map(Number);
+  const total = (horas * 60) + mins + Number(minutos);
+  const horasFinales = Math.floor(total / 60);
+  const minutosFinales = total % 60;
+
+  return `${String(horasFinales).padStart(2, '0')}:${String(minutosFinales).padStart(2, '0')}:00`;
+}
 
 module.exports = router;

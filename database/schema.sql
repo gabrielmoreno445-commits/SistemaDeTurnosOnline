@@ -254,3 +254,86 @@ SET @agregar_onboarding_completado = (
 PREPARE stmt_onboarding_completado FROM @agregar_onboarding_completado;
 EXECUTE stmt_onboarding_completado;
 DEALLOCATE PREPARE stmt_onboarding_completado;
+
+-- Campos nuevos para modalidades de atencion
+-- zona_cobertura permite orientar servicios a domicilio sin agregar mapas ni geolocalizacion.
+-- Por defecto se centra en Eldorado, Misiones, que es el foco inicial del producto.
+SET @agregar_zona_cobertura = (
+  SELECT IF(
+    COUNT(*) = 0,
+    'ALTER TABLE profesionales ADD COLUMN zona_cobertura VARCHAR(200) DEFAULT ''Eldorado, Misiones y hasta 15 km a la redonda''',
+    'SELECT 1'
+  )
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = 'turnos_db'
+    AND TABLE_NAME = 'profesionales'
+    AND COLUMN_NAME = 'zona_cobertura'
+);
+PREPARE stmt_zona_cobertura FROM @agregar_zona_cobertura;
+EXECUTE stmt_zona_cobertura;
+DEALLOCATE PREPARE stmt_zona_cobertura;
+
+-- modalidad_atencion define donde se presta cada servicio:
+-- local = el cliente va al profesional
+-- domicilio = el profesional va donde esta el cliente
+-- ambas = el cliente elige al reservar
+SET @agregar_modalidad_servicio = (
+  SELECT IF(
+    COUNT(*) = 0,
+    'ALTER TABLE servicios ADD COLUMN modalidad_atencion ENUM(''local'',''domicilio'',''ambas'') NOT NULL DEFAULT ''local''',
+    'SELECT 1'
+  )
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = 'turnos_db'
+    AND TABLE_NAME = 'servicios'
+    AND COLUMN_NAME = 'modalidad_atencion'
+);
+PREPARE stmt_modalidad_servicio FROM @agregar_modalidad_servicio;
+EXECUTE stmt_modalidad_servicio;
+DEALLOCATE PREPARE stmt_modalidad_servicio;
+
+-- Los turnos guardan la modalidad elegida y datos extra solo cuando hace falta.
+SET @agregar_modalidad_turno = (
+  SELECT IF(
+    COUNT(*) = 0,
+    'ALTER TABLE turnos ADD COLUMN modalidad_atencion ENUM(''local'',''domicilio'') NOT NULL DEFAULT ''local''',
+    'SELECT 1'
+  )
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = 'turnos_db'
+    AND TABLE_NAME = 'turnos'
+    AND COLUMN_NAME = 'modalidad_atencion'
+);
+PREPARE stmt_modalidad_turno FROM @agregar_modalidad_turno;
+EXECUTE stmt_modalidad_turno;
+DEALLOCATE PREPARE stmt_modalidad_turno;
+
+SET @agregar_direccion_cliente = (
+  SELECT IF(
+    COUNT(*) = 0,
+    'ALTER TABLE turnos ADD COLUMN direccion_cliente VARCHAR(200) DEFAULT NULL',
+    'SELECT 1'
+  )
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = 'turnos_db'
+    AND TABLE_NAME = 'turnos'
+    AND COLUMN_NAME = 'direccion_cliente'
+);
+PREPARE stmt_direccion_cliente FROM @agregar_direccion_cliente;
+EXECUTE stmt_direccion_cliente;
+DEALLOCATE PREPARE stmt_direccion_cliente;
+
+SET @agregar_notas_cliente = (
+  SELECT IF(
+    COUNT(*) = 0,
+    'ALTER TABLE turnos ADD COLUMN notas_cliente VARCHAR(300) DEFAULT NULL',
+    'SELECT 1'
+  )
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = 'turnos_db'
+    AND TABLE_NAME = 'turnos'
+    AND COLUMN_NAME = 'notas_cliente'
+);
+PREPARE stmt_notas_cliente FROM @agregar_notas_cliente;
+EXECUTE stmt_notas_cliente;
+DEALLOCATE PREPARE stmt_notas_cliente;

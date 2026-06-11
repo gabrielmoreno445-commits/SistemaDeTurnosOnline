@@ -51,7 +51,8 @@ router.get('/resumen', async (req, res) => {
 router.get('/proximos', async (req, res) => {
   try {
     const [rows] = await pool.query(
-      `SELECT t.fecha, t.hora_inicio, t.cliente_nombre, s.nombre AS servicio_nombre
+      `SELECT t.fecha, t.hora_inicio, t.cliente_nombre, t.modalidad_atencion,
+              t.direccion_cliente, s.nombre AS servicio_nombre
        FROM turnos t
        INNER JOIN servicios s ON s.id = t.servicio_id
        WHERE t.profesional_id = ?

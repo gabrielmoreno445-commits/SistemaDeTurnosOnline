@@ -20,7 +20,8 @@ const ESTADOS_VALIDOS = ['pendiente', 'confirmado', 'cancelado'];
 async function obtenerTurnoDelProfesional(turnoId, profesionalId) {
   const [rows] = await pool.query(
     `SELECT t.id, t.profesional_id, t.servicio_id, t.cliente_nombre, t.cliente_email,
-            t.cliente_telefono, t.fecha, t.hora_inicio, t.estado, t.created_at,
+            t.cliente_telefono, t.modalidad_atencion, t.direccion_cliente, t.notas_cliente,
+            t.fecha, t.hora_inicio, t.estado, t.created_at,
             s.nombre AS servicio_nombre
      FROM turnos t
      INNER JOIN servicios s ON s.id = t.servicio_id
@@ -69,7 +70,8 @@ router.get('/', async (req, res) => {
 
     const [rows] = await pool.query(
       `SELECT t.id, t.profesional_id, t.servicio_id, t.cliente_nombre, t.cliente_email,
-              t.cliente_telefono, t.fecha, t.hora_inicio, t.estado, t.created_at,
+              t.cliente_telefono, t.modalidad_atencion, t.direccion_cliente, t.notas_cliente,
+              t.fecha, t.hora_inicio, t.estado, t.created_at,
               s.nombre AS servicio_nombre
        FROM turnos t
        INNER JOIN servicios s ON s.id = t.servicio_id
@@ -125,9 +127,12 @@ router.put('/:id/estado', async (req, res) => {
           <h2>¡Tu turno fue confirmado!</h2>
           <p><strong>Cliente:</strong> ${turnoActualizado.cliente_nombre}</p>
           <p><strong>Servicio:</strong> ${turnoActualizado.servicio_nombre}</p>
+          <p><strong>Modalidad:</strong> ${turnoActualizado.modalidad_atencion === 'domicilio' ? 'A domicilio' : 'En el local'}</p>
           <p><strong>Fecha:</strong> ${turnoActualizado.fecha}</p>
           <p><strong>Hora:</strong> ${turnoActualizado.hora_inicio.slice(0, 5)}</p>
           <p><strong>Estado:</strong> Confirmado</p>
+          ${turnoActualizado.direccion_cliente ? `<p><strong>Dirección:</strong> ${turnoActualizado.direccion_cliente}</p>` : ''}
+          ${turnoActualizado.notas_cliente ? `<p><strong>Notas:</strong> ${turnoActualizado.notas_cliente}</p>` : ''}
         `
       });
     }

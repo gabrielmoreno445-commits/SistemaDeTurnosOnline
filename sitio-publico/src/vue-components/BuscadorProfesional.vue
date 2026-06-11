@@ -27,6 +27,20 @@ function navegarAProfesional(slug) {
   window.location.href = `/${slug}`;
 }
 
+function obtenerModalidades(profesional) {
+  const modalidades = [];
+
+  if (Number(profesional.atiende_en_local) === 1) {
+    modalidades.push('Local');
+  }
+
+  if (Number(profesional.atiende_a_domicilio) === 1) {
+    modalidades.push('A domicilio');
+  }
+
+  return modalidades.length > 0 ? modalidades : ['Local'];
+}
+
 // Cancela la busqueda anterior y espera 400ms desde la ultima tecla.
 // Esto baja la carga sobre el backend y mantiene el buscador reactivo.
 function alEscribir() {
@@ -86,7 +100,7 @@ async function buscar() {
         id="busqueda-profesional"
         v-model="termino"
         type="text"
-        placeholder="Busca por nombre o especialidad..."
+        placeholder="Busca por nombre, oficio o especialidad en Eldorado..."
         autocomplete="off"
         @input="alEscribir"
       />
@@ -124,6 +138,18 @@ async function buscar() {
           <span class="resultado-info">
             <strong>{{ profesional.nombre }}</strong>
             <small>{{ profesional.especialidad || 'Especialidad no informada' }}</small>
+            <span class="modalidades-row">
+              <span
+                v-for="modalidad in obtenerModalidades(profesional)"
+                :key="modalidad"
+                class="modalidad-chip"
+              >
+                {{ modalidad }}
+              </span>
+            </span>
+            <small v-if="Number(profesional.atiende_a_domicilio) === 1 && profesional.zona_cobertura">
+              {{ profesional.zona_cobertura }}
+            </small>
           </span>
         </button>
       </div>
@@ -240,6 +266,23 @@ async function buscar() {
 
 .resultado-info small {
   color: var(--text-secondary);
+}
+
+.modalidades-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.modalidad-chip {
+  width: fit-content;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .ver-todos {

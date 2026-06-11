@@ -32,13 +32,17 @@ router.get('/', async (req, res) => {
     const like = `%${termino}%`;
 
     const [rows] = await pool.query(
-      `SELECT id, nombre, especialidad, slug, foto_url
-       FROM profesionales
-       WHERE onboarding_completado = 1
-         AND (nombre LIKE ? OR especialidad LIKE ?)
-       ORDER BY nombre ASC
+      `SELECT p.id, p.nombre, p.especialidad, p.slug, p.foto_url, p.zona_cobertura,
+              MAX(CASE WHEN s.modalidad_atencion IN ('local', 'ambas') THEN 1 ELSE 0 END) AS atiende_en_local,
+              MAX(CASE WHEN s.modalidad_atencion IN ('domicilio', 'ambas') THEN 1 ELSE 0 END) AS atiende_a_domicilio
+       FROM profesionales p
+       LEFT JOIN servicios s ON s.profesional_id = p.id AND s.activo = 1
+       WHERE p.onboarding_completado = 1
+         AND (p.nombre LIKE ? OR p.especialidad LIKE ? OR s.nombre LIKE ?)
+       GROUP BY p.id, p.nombre, p.especialidad, p.slug, p.foto_url, p.zona_cobertura
+       ORDER BY p.nombre ASC
        LIMIT 20`,
-      [like, like]
+      [like, like, like]
     );
 
     return res.status(200).json(rows);
