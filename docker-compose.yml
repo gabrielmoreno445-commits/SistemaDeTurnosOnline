@@ -33,7 +33,7 @@ services:
       DB_NAME: turnos_db
       JWT_SECRET: clave_secreta_cambiar_en_produccion
     ports:
-      - '4000:8000'
+      - '4000:4000'
     depends_on:
       db:
         condition: service_healthy
