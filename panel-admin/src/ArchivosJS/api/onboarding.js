@@ -4,6 +4,12 @@
 // completarOnboarding persiste el cierre del flujo en la base de datos.
 
 import { API_URL, fetchConTimeout } from '../utils/api.js';
+import {
+  isDemoMode
+} from '../demoMode.js';
+import {
+  getDemoOnboardingEstado
+} from '../demoData.js';
 
 // Centraliza requests autenticadas del onboarding para mantener headers y errores consistentes.
 async function hacerRequest(ruta, token, opciones = {}) {
@@ -29,6 +35,10 @@ async function hacerRequest(ruta, token, opciones = {}) {
 }
 
 async function obtenerEstado(token) {
+  if (isDemoMode()) {
+    return getDemoOnboardingEstado();
+  }
+
   try {
     return await hacerRequest('/onboarding/estado', token, {
       method: 'GET'
@@ -39,6 +49,10 @@ async function obtenerEstado(token) {
 }
 
 async function completarOnboarding(token) {
+  if (isDemoMode()) {
+    return { mensaje: 'Onboarding completado correctamente' };
+  }
+
   try {
     return await hacerRequest('/onboarding/completar', token, {
       method: 'POST'

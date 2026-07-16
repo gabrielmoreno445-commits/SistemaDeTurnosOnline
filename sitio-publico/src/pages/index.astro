@@ -5,6 +5,9 @@
 
 import Layout from '../layouts/Layout.astro';
 
+const demoMode = Astro.url.searchParams.get('demo') === '1';
+const demoSuffix = demoMode ? '?demo=1' : '';
+
 const slides = [
   {
     src: '/img/10-masajes.png',
@@ -88,7 +91,7 @@ const duracionTotal = `${slides.length * 5}s`;
       <p class="eyebrow">Sistema de Turnos Online</p>
       <h1>Bienvenido a Sistema de Turnos Online</h1>
       <p class="hero-subtitle">Tu turno, cuando quieras</p>
-      <a href="/tu-necesidad" class="hero-action">Encontrar un profesional</a>
+      <a href={`/tu-necesidad${demoSuffix}`} class="hero-action">Encontrar un profesional</a>
     </div>
   </section>
 </Layout>

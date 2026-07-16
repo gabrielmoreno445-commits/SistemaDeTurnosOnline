@@ -5,6 +5,8 @@
 
 import Layout from '../layouts/Layout.astro';
 import BuscadorProfesional from '../vue-components/BuscadorProfesional.vue';
+
+const demoMode = Astro.url.searchParams.get('demo') === '1';
 ---
 
 <Layout title="Tu necesidad">
@@ -17,7 +19,7 @@ import BuscadorProfesional from '../vue-components/BuscadorProfesional.vue';
       </p>
     </div>
 
-    <BuscadorProfesional client:load />
+    <BuscadorProfesional client:load demoMode={demoMode} />
   </section>
 
   <section class="como-funciona">

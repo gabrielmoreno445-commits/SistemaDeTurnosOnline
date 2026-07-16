@@ -5,6 +5,8 @@ backend/.env
 **/node_modules/
 **/.vite/
 **/.astro/
+**/dist/
+.tmp-edge-profile/
 
 .DS_Store
 **/.DS_Store

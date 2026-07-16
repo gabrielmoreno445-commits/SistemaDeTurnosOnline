@@ -201,6 +201,13 @@
 // 4. El cliente completa sus datos y confirma la reserva
 
 import { computed, onMounted, ref, watch } from 'vue';
+import {
+  createDemoTurno,
+  getDemoAvailabilityBySlug,
+  getDemoProfessionalBySlug,
+  getDemoServicesBySlug,
+  getDemoTurnosOcupados
+} from '../demoData.js';
 
 // En Astro, las variables PUBLIC_ son accesibles desde componentes Vue.
 // La isla corre en el navegador, por eso usa la URL publica del backend.
@@ -209,7 +216,8 @@ const API_BASE = `${API_URL}/publico`;
 
 export default {
   props: {
-    slug: { type: String, required: true }
+    slug: { type: String, required: true },
+    demoMode: { type: Boolean, default: false }
   },
   setup(props) {
     const servicios = ref([]);
@@ -369,6 +377,21 @@ export default {
       error.value = null;
 
       try {
+        if (props.demoMode) {
+          const profesional = getDemoProfessionalBySlug(props.slug);
+          const serviciosData = getDemoServicesBySlug(props.slug);
+          const disponibilidadData = getDemoAvailabilityBySlug(props.slug);
+
+          if (!profesional) {
+            throw new Error('No se pudieron cargar los datos del profesional');
+          }
+
+          profesionalNombre.value = profesional.nombre;
+          servicios.value = serviciosData;
+          disponibilidad.value = disponibilidadData;
+          return;
+        }
+
         const [resProfesional, resServicios, resDisponibilidad] = await Promise.all([
           fetch(`${API_BASE}/${props.slug}`),
           fetch(`${API_BASE}/${props.slug}/servicios`),
@@ -406,6 +429,48 @@ export default {
       error.value = null;
 
       try {
+        if (props.demoMode) {
+          const ocupados = getDemoTurnosOcupados(props.slug, fechaSeleccionada.value);
+
+          if (ocupados?.bloqueado) {
+            horariosDisponibles.value = [];
+            error.value = ocupados.motivo
+              ? `El profesional no atiende este dia: ${ocupados.motivo}`
+              : 'El profesional no atiende este dia';
+            return;
+          }
+
+          const horariosOcupados = new Set(
+            ocupados.map((turno) => turno.hora_inicio.slice(0, 5))
+          );
+
+          const diaSemana = obtenerDiaSemana(fechaSeleccionada.value);
+          const bloquesDelDia = disponibilidad.value.filter(
+            (bloque) => Number(bloque.dia_semana) === diaSemana
+          );
+
+          const slots = [];
+          const duracion = Number(servicioSeleccionado.value.duracion_minutos);
+
+          for (const bloque of bloquesDelDia) {
+            let minutoActual = horaAMinutos(bloque.hora_inicio);
+            const minutoFin = horaAMinutos(bloque.hora_fin);
+
+            while ((minutoActual + duracion) <= minutoFin) {
+              const slot = minutosAHora(minutoActual);
+
+              if (!horariosOcupados.has(slot) && !esHorarioPasado(fechaSeleccionada.value, slot)) {
+                slots.push(slot);
+              }
+
+              minutoActual += duracion;
+            }
+          }
+
+          horariosDisponibles.value = slots;
+          return;
+        }
+
         const res = await fetch(
           `${API_BASE}/${props.slug}/turnos-ocupados?fecha=${fechaSeleccionada.value}`
         );
@@ -503,6 +568,24 @@ export default {
       error.value = null;
 
       try {
+        if (props.demoMode) {
+          createDemoTurno({
+            slug: props.slug,
+            servicio_id: servicioSeleccionado.value.id,
+            cliente_nombre: clienteNombre.value,
+            cliente_email: clienteEmail.value,
+            cliente_telefono: clienteTelefono.value,
+            modalidad_atencion: modalidadSeleccionada.value,
+            direccion_cliente: direccionCliente.value,
+            notas_cliente: notasCliente.value,
+            fecha: fechaSeleccionada.value,
+            hora_inicio: horarioSeleccionado.value
+          });
+
+          exito.value = true;
+          return;
+        }
+
         const res = await fetch(`${API_BASE}/turnos`, {
           method: 'POST',
           headers: {

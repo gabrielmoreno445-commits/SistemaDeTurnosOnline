@@ -8,6 +8,15 @@ Para probar rápido:
 Buscador público: http://localhost:4321/buscar?q=Pelu
 Página de María: http://localhost:4321/maria-garcia
 Login panel: http://localhost:5173/login
+
+Modo demo sin backend:
+
+Sitio demo: http://localhost:4321/?demo=1
+Buscador demo: http://localhost:4321/tu-necesidad?demo=1
+Busqueda demo: http://localhost:4321/buscar?q=Maria&demo=1
+Página demo: http://localhost:4321/maria-garcia?demo=1
+Login demo panel: http://localhost:5173/login?demo=1
+
 Credenciales de prueba que vienen funcionando:
 
 Email: maria@test.com

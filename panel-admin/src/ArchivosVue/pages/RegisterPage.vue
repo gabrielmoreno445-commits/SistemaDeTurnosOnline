@@ -9,6 +9,7 @@ import { reactive, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 
 import { loginProfesional, registrarProfesional } from '../../ArchivosJS/api/auth.js';
+import { setItem } from '../../ArchivosJS/utils/storage.js';
 import { useAuthStore } from '../stores/authStore.js';
 
 const router = useRouter();
@@ -48,7 +49,7 @@ async function manejarSubmit() {
     authStore.profesional = profesional;
     authStore.onboardingCompletado = false;
     authStore.onboardingVerificado = true;
-    localStorage.setItem('token', token);
+    setItem('token', token);
 
     mensajeExito.value = 'Cuenta creada correctamente';
     router.push('/onboarding');

@@ -7,6 +7,8 @@ Usa debounce de 400ms para evitar una llamada a la API por cada tecla.
 <script setup>
 import { ref } from 'vue';
 
+import { getDemoSearchResults } from '../demoData.js';
+
 const termino = ref('');
 const resultados = ref([]);
 const cargando = ref(false);
@@ -14,6 +16,13 @@ const error = ref(null);
 const timerId = ref(null);
 const sinResultados = ref(false);
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:4000';
+
+const props = defineProps({
+  demoMode: {
+    type: Boolean,
+    default: false
+  }
+});
 
 function obtenerFoto(fotoUrl) {
   if (!fotoUrl) {
@@ -72,6 +81,13 @@ async function buscar() {
   error.value = null;
 
   try {
+    if (props.demoMode) {
+      const data = getDemoSearchResults(texto);
+      resultados.value = data;
+      sinResultados.value = data.length === 0;
+      return;
+    }
+
     const res = await fetch(`${API_URL}/busqueda?q=${encodeURIComponent(texto)}`);
     const data = await res.json();
 
@@ -156,7 +172,9 @@ async function buscar() {
 
       <a
         v-if="termino.trim().length >= 2"
-        :href="`/buscar?q=${encodeURIComponent(termino.trim())}`"
+        :href="props.demoMode
+          ? `/buscar?q=${encodeURIComponent(termino.trim())}&demo=1`
+          : `/buscar?q=${encodeURIComponent(termino.trim())}`"
         class="ver-todos"
       >
         Ver todos los resultados para "{{ termino.trim() }}"

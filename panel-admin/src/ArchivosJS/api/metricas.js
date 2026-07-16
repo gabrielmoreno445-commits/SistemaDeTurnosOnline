@@ -4,6 +4,11 @@
 // solo consulta y presenta los resultados sin cache local.
 
 import { API_URL } from '../utils/api.js';
+import { isDemoMode } from '../demoMode.js';
+import {
+  getDemoProximos,
+  getDemoResumen
+} from '../demoData.js';
 
 // Ejecuta requests autenticadas de metricas y centraliza errores del backend.
 // Esto evita repetir codigo de fetch en DashboardPage y MetricasPage.
@@ -30,6 +35,10 @@ async function hacerRequest(ruta, token, opciones = {}) {
 }
 
 async function obtenerResumen(token) {
+  if (isDemoMode()) {
+    return getDemoResumen();
+  }
+
   try {
     return await hacerRequest('/metricas/resumen', token, {
       method: 'GET'
@@ -40,6 +49,10 @@ async function obtenerResumen(token) {
 }
 
 async function obtenerProximos(token) {
+  if (isDemoMode()) {
+    return getDemoProximos();
+  }
+
   try {
     return await hacerRequest('/metricas/proximos', token, {
       method: 'GET'

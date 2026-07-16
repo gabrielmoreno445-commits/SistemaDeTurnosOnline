@@ -3,6 +3,12 @@
 // Estas fechas se reflejan en el sitio publico sin depender de los horarios semanales.
 
 import { API_URL } from '../utils/api.js';
+import { isDemoMode } from '../demoMode.js';
+import {
+  bloquearDemoFecha,
+  desbloquearDemoFecha,
+  listarDemoDiasBloqueados
+} from '../demoData.js';
 
 // Ejecuta requests autenticadas contra dias bloqueados y unifica el manejo de errores.
 // Mantiene la capa de vistas enfocada en la UI y no en detalles de red.
@@ -29,6 +35,10 @@ async function hacerRequest(ruta, token, opciones = {}) {
 }
 
 async function obtenerDiasBloqueados(token) {
+  if (isDemoMode()) {
+    return listarDemoDiasBloqueados();
+  }
+
   try {
     return await hacerRequest('/dias-bloqueados', token, {
       method: 'GET'
@@ -39,6 +49,10 @@ async function obtenerDiasBloqueados(token) {
 }
 
 async function bloquearFecha(token, fecha, motivo) {
+  if (isDemoMode()) {
+    return bloquearDemoFecha(fecha, motivo);
+  }
+
   try {
     return await hacerRequest('/dias-bloqueados', token, {
       method: 'POST',
@@ -53,6 +67,10 @@ async function bloquearFecha(token, fecha, motivo) {
 }
 
 async function desbloquearFecha(token, id) {
+  if (isDemoMode()) {
+    return desbloquearDemoFecha(id);
+  }
+
   try {
     return await hacerRequest(`/dias-bloqueados/${id}`, token, {
       method: 'DELETE'

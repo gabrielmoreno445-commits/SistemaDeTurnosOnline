@@ -4,6 +4,13 @@
 // del backend tiene validaciones distintas y mensajes de error propios.
 
 import { API_URL } from '../utils/api.js';
+import { isDemoMode } from '../demoMode.js';
+import {
+  actualizarDemoPerfil,
+  cambiarDemoPassword,
+  eliminarDemoFoto,
+  subirDemoFoto
+} from '../demoData.js';
 
 // Ejecuta una request autenticada de perfil y centraliza el parseo de errores.
 // Asi las paginas solo trabajan con datos listos o con una excepcion descriptiva.
@@ -30,6 +37,10 @@ async function hacerRequest(ruta, token, opciones = {}) {
 }
 
 async function actualizarPerfil(token, datos) {
+  if (isDemoMode()) {
+    return actualizarDemoPerfil(datos);
+  }
+
   try {
     return await hacerRequest('/perfil', token, {
       method: 'PUT',
@@ -44,6 +55,10 @@ async function actualizarPerfil(token, datos) {
 }
 
 async function cambiarPassword(token, passwordActual, passwordNuevo) {
+  if (isDemoMode()) {
+    return cambiarDemoPassword();
+  }
+
   try {
     return await hacerRequest('/perfil/password', token, {
       method: 'PUT',
@@ -63,6 +78,10 @@ async function cambiarPassword(token, passwordActual, passwordNuevo) {
 // Sube la foto como FormData porque el backend espera multipart/form-data.
 // No se define Content-Type manualmente para que el navegador agregue el boundary correcto.
 async function subirFotoPerfil(token, archivo) {
+  if (isDemoMode()) {
+    return subirDemoFoto();
+  }
+
   try {
     const formData = new FormData();
     formData.append('foto', archivo);
@@ -77,6 +96,10 @@ async function subirFotoPerfil(token, archivo) {
 }
 
 async function eliminarFotoPerfil(token) {
+  if (isDemoMode()) {
+    return eliminarDemoFoto();
+  }
+
   try {
     return await hacerRequest('/perfil/foto', token, {
       method: 'DELETE'

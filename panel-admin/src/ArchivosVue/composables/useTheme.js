@@ -5,14 +5,20 @@
 
 import { computed, ref } from 'vue';
 
-const tema = ref(localStorage.getItem('tema') || 'light');
+import { getItem, setItem } from '../../ArchivosJS/utils/storage.js';
+
+const tema = ref(getItem('tema') || 'light');
 
 // Aplica el tema sobre el documento y lo persiste.
 // Centralizarlo evita que cada componente repita acceso a localStorage y DOM.
 function aplicarTema(nuevoTema) {
   tema.value = nuevoTema;
-  document.documentElement.setAttribute('data-theme', nuevoTema);
-  localStorage.setItem('tema', nuevoTema);
+
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', nuevoTema);
+  }
+
+  setItem('tema', nuevoTema);
 }
 
 function toggleTema() {

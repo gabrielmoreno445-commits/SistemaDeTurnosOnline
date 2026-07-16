@@ -10,6 +10,16 @@ para que la aplicacion recupere el profesional logueado desde localStorage.
   </div>
 </template>
 
+<script setup>
+import { onMounted } from 'vue';
+
+import { sincronizarDemoModeDesdeUrl } from '../ArchivosJS/demoMode.js';
+
+onMounted(() => {
+  sincronizarDemoModeDesdeUrl();
+});
+</script>
+
 <style scoped>
 .app-shell {
   min-height: 100vh;

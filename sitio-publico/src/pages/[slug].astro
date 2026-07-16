@@ -9,23 +9,33 @@
 
 import Layout from '../layouts/Layout.astro';
 import FormReserva from '../vue-components/FormReserva.vue';
+import { getDemoProfessionalBySlug } from '../demoData.js';
 
 export const prerender = false;
 
 const { slug } = Astro.params;
+const demoMode = Astro.url.searchParams.get('demo') === '1';
 const API_URL = import.meta.env.API_URL || 'http://backend:4000';
 const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:4000';
 
 let profesional = null;
 
 try {
-  const res = await fetch(`${API_URL}/publico/${slug}`);
+  if (demoMode) {
+    profesional = getDemoProfessionalBySlug(slug);
+  } else {
+    const res = await fetch(`${API_URL}/publico/${slug}`);
 
-  if (!res.ok) {
-    return Astro.redirect('/404');
+    if (!res.ok) {
+      return Astro.redirect('/404');
+    }
+
+    profesional = await res.json();
   }
 
-  profesional = await res.json();
+  if (!profesional) {
+    return Astro.redirect('/404');
+  }
 } catch (error) {
   return Astro.redirect('/404');
 }
@@ -69,7 +79,7 @@ try {
       </div>
 
       <hr />
-      <FormReserva client:load slug={slug} />
+      <FormReserva client:load slug={slug} demoMode={demoMode} />
     </div>
   </section>
 </Layout>

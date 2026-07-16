@@ -3,6 +3,11 @@
 // El parametro fecha es opcional: si no se envia, el backend devuelve los de hoy.
 
 import { API_URL } from '../utils/api.js';
+import { isDemoMode } from '../demoMode.js';
+import {
+  cambiarDemoEstadoTurno,
+  listarDemoTurnos
+} from '../demoData.js';
 
 // Ejecuta requests autenticadas de turnos y centraliza errores del backend.
 // Mantiene la capa de paginas mas limpia para que solo se enfoque en la UI.
@@ -29,6 +34,10 @@ async function hacerRequest(ruta, token, opciones = {}) {
 }
 
 async function obtenerTurnos(token, fecha) {
+  if (isDemoMode()) {
+    return listarDemoTurnos({ fecha });
+  }
+
   try {
     const query = fecha ? `?fecha=${fecha}` : '';
 
@@ -41,6 +50,10 @@ async function obtenerTurnos(token, fecha) {
 }
 
 async function cambiarEstadoTurno(token, id, estado) {
+  if (isDemoMode()) {
+    return cambiarDemoEstadoTurno(id, estado);
+  }
+
   try {
     return await hacerRequest(`/turnos/${id}/estado`, token, {
       method: 'PUT',

@@ -6,6 +6,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import { useAuthStore } from '../stores/authStore.js';
+import { getItem } from '../../ArchivosJS/utils/storage.js';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -61,7 +62,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const authStore = useAuthStore();
   const esRutaPublicaDeAuth = to.path === '/login' || to.path === '/register';
-  const tokenGuardado = localStorage.getItem('token');
+  const tokenGuardado = getItem('token');
 
   if (!authStore.estaLogueado && tokenGuardado) {
     await authStore.restaurarSesion();

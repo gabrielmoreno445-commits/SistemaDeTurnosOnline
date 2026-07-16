@@ -11,6 +11,11 @@ import {
   obtenerProfesionalActual
 } from '../../ArchivosJS/api/auth.js';
 import { obtenerEstado } from '../../ArchivosJS/api/onboarding.js';
+import {
+  DEMO_TOKEN,
+  isDemoMode
+} from '../../ArchivosJS/demoMode.js';
+import { getItem, removeItem, setItem } from '../../ArchivosJS/utils/storage.js';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -34,6 +39,18 @@ export const useAuthStore = defineStore('auth', {
       this.error = null;
 
       try {
+        if (isDemoMode()) {
+          const { token, profesional } = await loginProfesional(email, password);
+
+          this.token = token;
+          this.profesional = profesional;
+          this.onboardingCompletado = true;
+          this.onboardingVerificado = true;
+
+          setItem('token', token);
+          return;
+        }
+
         const { token, profesional } = await loginProfesional(email, password);
 
         this.token = token;
@@ -41,7 +58,7 @@ export const useAuthStore = defineStore('auth', {
         this.onboardingCompletado = false;
         this.onboardingVerificado = false;
 
-        localStorage.setItem('token', token);
+        setItem('token', token);
       } catch (error) {
         this.error = error.message;
       } finally {
@@ -58,13 +75,13 @@ export const useAuthStore = defineStore('auth', {
       this.onboardingVerificado = false;
       this.error = null;
 
-      localStorage.removeItem('token');
+      removeItem('token');
     },
 
     // Rehidrata la sesion al abrir la SPA leyendo el token desde localStorage.
     // Si el backend rechaza el token, limpia todo para evitar una UI en falso estado.
     async restaurarSesion() {
-      const tokenGuardado = localStorage.getItem('token');
+      const tokenGuardado = getItem('token');
 
       if (!tokenGuardado) {
         return;
@@ -74,6 +91,16 @@ export const useAuthStore = defineStore('auth', {
       this.error = null;
 
       try {
+        if (isDemoMode() && tokenGuardado === DEMO_TOKEN) {
+          const { profesional } = await obtenerProfesionalActual(tokenGuardado);
+
+          this.token = tokenGuardado;
+          this.profesional = profesional;
+          this.onboardingCompletado = true;
+          this.onboardingVerificado = true;
+          return;
+        }
+
         const { profesional } = await obtenerProfesionalActual(tokenGuardado);
 
         this.token = tokenGuardado;
@@ -89,6 +116,12 @@ export const useAuthStore = defineStore('auth', {
     // Consulta una sola vez por sesion si el profesional termino el onboarding.
     // El router usa este dato para redirigir sin pedirle a la API en cada navegacion.
     async verificarOnboarding(token) {
+      if (isDemoMode()) {
+        this.onboardingCompletado = true;
+        this.onboardingVerificado = true;
+        return true;
+      }
+
       if (this.onboardingVerificado) {
         return this.onboardingCompletado;
       }

@@ -4,6 +4,12 @@
 //             4=Jueves, 5=Viernes, 6=Sabado
 
 import { API_URL } from '../utils/api.js';
+import { isDemoMode } from '../demoMode.js';
+import {
+  crearDemoBloque,
+  eliminarDemoBloque,
+  listarDemoDisponibilidad
+} from '../demoData.js';
 
 // Ejecuta llamadas autenticadas contra disponibilidad y unifica errores.
 // Esto evita repetir parseo JSON y armado de headers en cada funcion publica.
@@ -30,6 +36,10 @@ async function hacerRequest(ruta, token, opciones = {}) {
 }
 
 async function obtenerDisponibilidad(token) {
+  if (isDemoMode()) {
+    return listarDemoDisponibilidad();
+  }
+
   try {
     return await hacerRequest('/disponibilidad', token, {
       method: 'GET'
@@ -40,6 +50,10 @@ async function obtenerDisponibilidad(token) {
 }
 
 async function crearBloque(token, datos) {
+  if (isDemoMode()) {
+    return crearDemoBloque(datos);
+  }
+
   try {
     return await hacerRequest('/disponibilidad', token, {
       method: 'POST',
@@ -54,6 +68,10 @@ async function crearBloque(token, datos) {
 }
 
 async function eliminarBloque(token, id) {
+  if (isDemoMode()) {
+    return eliminarDemoBloque(id);
+  }
+
   try {
     return await hacerRequest(`/disponibilidad/${id}`, token, {
       method: 'DELETE'

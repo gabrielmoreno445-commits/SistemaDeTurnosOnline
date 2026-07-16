@@ -8,11 +8,15 @@ import { createPinia } from 'pinia';
 import App from './ArchivosVue/App.vue';
 import router from './ArchivosVue/router/index.js';
 import './styles/global.css';
+import { getItem } from './ArchivosJS/utils/storage.js';
 
 // Aplicar el tema guardado antes de montar la app
 // para evitar el flash de modo incorrecto al cargar.
-const temaGuardado = localStorage.getItem('tema') || 'light';
-document.documentElement.setAttribute('data-theme', temaGuardado);
+const temaGuardado = getItem('tema') || 'light';
+
+if (typeof document !== 'undefined') {
+  document.documentElement.setAttribute('data-theme', temaGuardado);
+}
 
 const app = createApp(App);
 

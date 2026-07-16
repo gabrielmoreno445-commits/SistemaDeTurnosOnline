@@ -5,13 +5,16 @@ Consume el store de autenticacion para iniciar sesion y reaccionar a errores,
 estados de carga y redireccion al dashboard cuando la sesion queda activa.
 -->
 <script setup>
-import { reactive, watch } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
+import { sincronizarDemoModeDesdeUrl } from '../../ArchivosJS/demoMode.js';
+import { getItem } from '../../ArchivosJS/utils/storage.js';
 import { useAuthStore } from '../stores/authStore.js';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const demoActivo = ref(false);
 
 const formulario = reactive({
   email: '',
@@ -37,12 +40,25 @@ watch(
   },
   { immediate: true }
 );
+
+onMounted(() => {
+  sincronizarDemoModeDesdeUrl();
+  demoActivo.value = getItem('turnos-demo-mode') === '1';
+
+  if (demoActivo.value) {
+    formulario.email = 'maria@test.com';
+    formulario.password = '12345';
+  }
+});
 </script>
 
 <template>
   <main class="auth-page">
     <section class="auth-card">
       <h1 class="auth-title">Iniciar sesión</h1>
+      <p v-if="demoActivo" class="demo-note">
+        Demo local activo. Usa la cuenta de prueba para entrar sin Docker.
+      </p>
 
       <form class="auth-form" @submit.prevent="manejarSubmit">
         <label class="field">
@@ -106,6 +122,12 @@ watch(
 .auth-title {
   margin: 0;
   font-size: var(--font-size-xl, 1.75rem);
+}
+
+.demo-note {
+  margin: -8px 0 0;
+  color: var(--color-text-muted, #6b7280);
+  font-size: var(--font-size-sm, 0.95rem);
 }
 
 .auth-form {

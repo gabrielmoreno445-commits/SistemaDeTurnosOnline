@@ -4,6 +4,13 @@
 // puede administrar su propio catalogo desde el panel admin.
 
 import { API_URL } from '../utils/api.js';
+import { isDemoMode } from '../demoMode.js';
+import {
+  crearDemoServicio,
+  desactivarDemoServicio,
+  editarDemoServicio,
+  listarDemoServicios
+} from '../demoData.js';
 
 // Ejecuta una request autenticada y centraliza el manejo de errores del backend.
 // Recibe ruta, token y opciones para no repetir configuracion en cada operacion.
@@ -30,6 +37,10 @@ async function hacerRequest(ruta, token, opciones = {}) {
 }
 
 async function obtenerServicios(token) {
+  if (isDemoMode()) {
+    return listarDemoServicios();
+  }
+
   try {
     return await hacerRequest('/servicios', token, {
       method: 'GET'
@@ -40,6 +51,10 @@ async function obtenerServicios(token) {
 }
 
 async function crearServicio(token, datos) {
+  if (isDemoMode()) {
+    return crearDemoServicio(datos);
+  }
+
   try {
     return await hacerRequest('/servicios', token, {
       method: 'POST',
@@ -54,6 +69,10 @@ async function crearServicio(token, datos) {
 }
 
 async function editarServicio(token, id, datos) {
+  if (isDemoMode()) {
+    return editarDemoServicio(id, datos);
+  }
+
   try {
     return await hacerRequest(`/servicios/${id}`, token, {
       method: 'PUT',
@@ -68,6 +87,10 @@ async function editarServicio(token, id, datos) {
 }
 
 async function desactivarServicio(token, id) {
+  if (isDemoMode()) {
+    return desactivarDemoServicio(id);
+  }
+
   try {
     return await hacerRequest(`/servicios/${id}`, token, {
       method: 'DELETE'
