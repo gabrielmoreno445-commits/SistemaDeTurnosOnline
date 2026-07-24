@@ -14,6 +14,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'dashboard',
+      alias: ['/turnos'],
       component: () => import('../pages/DashboardPage.vue'),
       meta: { requiereAuth: true }
     },

@@ -15,10 +15,13 @@ services:
       - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
       test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-uroot', '-proot_password']
+      # MySQL 8 puede tardar varios minutos en inicializarse por primera vez
+      # cuando el volumen está vacío. Damos margen suficiente para que no se
+      # marque como unhealthy antes de terminar el arranque.
       interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
+      timeout: 10s
+      retries: 30
+      start_period: 5m
 
   backend:
     build: ./backend
