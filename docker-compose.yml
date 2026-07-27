@@ -51,6 +51,8 @@ services:
     restart: unless-stopped
     ports:
       - '5173:5173'
+    environment:
+      CHOKIDAR_USEPOLLING: 'true'
     volumes:
       - ./panel-admin:/app
       - /app/node_modules
@@ -62,10 +64,14 @@ services:
     restart: unless-stopped
     ports:
       - '4321:4321'
+    environment:
+      CHOKIDAR_USEPOLLING: 'true'
     volumes:
       - ./sitio-publico:/app
       - /app/node_modules
-    command: npm run dev -- --host
+      - /app/.astro
+      - /app/dist
+    command: sh -c "npm run build && npm run preview -- --host 0.0.0.0 --port 4321 --strictPort"
 
 volumes:
   mysql_data:

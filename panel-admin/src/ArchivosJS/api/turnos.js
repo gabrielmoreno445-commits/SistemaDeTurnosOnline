@@ -33,13 +33,43 @@ async function hacerRequest(ruta, token, opciones = {}) {
   }
 }
 
-async function obtenerTurnos(token, fecha) {
+async function obtenerTurnos(token, fechaOFiltros, filtrosAdicionales = {}) {
   if (isDemoMode()) {
-    return listarDemoTurnos({ fecha });
+    if (fechaOFiltros && typeof fechaOFiltros === 'object' && !Array.isArray(fechaOFiltros)) {
+      return listarDemoTurnos(fechaOFiltros);
+    }
+
+    const filtros = {
+      ...(filtrosAdicionales || {})
+    };
+
+    if (typeof fechaOFiltros === 'string' && fechaOFiltros) {
+      filtros.fecha = fechaOFiltros;
+    }
+
+    return listarDemoTurnos(filtros);
   }
 
   try {
-    const query = fecha ? `?fecha=${fecha}` : '';
+    const filtros = {
+      ...(filtrosAdicionales || {})
+    };
+
+    if (fechaOFiltros && typeof fechaOFiltros === 'object' && !Array.isArray(fechaOFiltros)) {
+      Object.assign(filtros, fechaOFiltros);
+    } else if (typeof fechaOFiltros === 'string' && fechaOFiltros) {
+      filtros.fecha = fechaOFiltros;
+    }
+
+    const params = new URLSearchParams();
+
+    for (const [clave, valor] of Object.entries(filtros)) {
+      if (valor !== undefined && valor !== null && valor !== '') {
+        params.set(clave, valor);
+      }
+    }
+
+    const query = params.toString() ? `?${params.toString()}` : '';
 
     return await hacerRequest(`/turnos${query}`, token, {
       method: 'GET'

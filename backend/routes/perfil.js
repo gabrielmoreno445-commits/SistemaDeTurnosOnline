@@ -47,6 +47,58 @@ async function eliminarFotoDelDisco(fotoUrl) {
   }
 }
 
+function obtenerExtensionDesdeMime(mimeType) {
+  const extensiones = {
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/webp': '.webp'
+  };
+
+  return extensiones[mimeType] || null;
+}
+
+function descomponerDataUrl(dataUrl) {
+  const coincidencia = String(dataUrl || '').match(/^data:(image\/jpeg|image\/png|image\/webp);base64,(.+)$/i);
+
+  if (!coincidencia) {
+    return null;
+  }
+
+  return {
+    mimeType: coincidencia[1].toLowerCase(),
+    base64: coincidencia[2]
+  };
+}
+
+async function guardarFotoBase64(profesionalId, dataUrl) {
+  const partes = descomponerDataUrl(dataUrl);
+
+  if (!partes) {
+    throw new Error('El formato de la imagen no es valido');
+  }
+
+  const extension = obtenerExtensionDesdeMime(partes.mimeType);
+
+  if (!extension) {
+    throw new Error('Solo se permiten imagenes JPG, PNG o WebP');
+  }
+
+  const buffer = Buffer.from(partes.base64, 'base64');
+
+  if (buffer.length > 2 * 1024 * 1024) {
+    throw new Error('La imagen no puede superar los 2 MB');
+  }
+
+  const nombreArchivo = `profesional-${profesionalId}-${Date.now()}${extension}`;
+  const rutaArchivo = path.join(__dirname, '..', 'uploads', nombreArchivo);
+
+  await fs.writeFile(rutaArchivo, buffer);
+
+  return {
+    fotoUrl: `/uploads/${nombreArchivo}`
+  };
+}
+
 // PUT /perfil
 // Actualiza solo los campos de perfil permitidos que llegan en el body.
 // No permite cambiar email ni slug para preservar los identificadores unicos del sistema.
@@ -145,24 +197,12 @@ router.put('/password', async (req, res) => {
 });
 
 // POST /perfil/foto
-// Recibe una imagen multipart/form-data en el campo "foto".
-// Protegida por JWT: Multer corre despues de authMiddleware para nombrar el archivo con req.profesional.id.
-// Actualiza foto_url y elimina la foto anterior para evitar residuos en disco.
+// Recibe una imagen multipart/form-data o un data URL Base64 en JSON.
+// Protegida por JWT: valida formato, tamaño y actualiza foto_url sin cambiar
+// la ruta pública que ya usa el sitio.
 router.post('/foto', (req, res) => {
-  upload.single('foto')(req, res, async (uploadError) => {
+  const procesarSolicitud = async () => {
     try {
-      if (uploadError) {
-        return res.status(400).json({
-          error: uploadError.message || 'No se pudo subir la foto'
-        });
-      }
-
-      if (!req.file) {
-        return res.status(400).json({
-          error: 'Debes seleccionar una imagen para subir'
-        });
-      }
-
       const [rows] = await pool.query(
         `SELECT foto_url
          FROM profesionales
@@ -172,14 +212,27 @@ router.post('/foto', (req, res) => {
       );
 
       if (rows.length === 0) {
-        await eliminarFotoDelDisco(`/uploads/${req.file.filename}`);
+        if (req.file) {
+          await eliminarFotoDelDisco(`/uploads/${req.file.filename}`);
+        }
 
         return res.status(404).json({
           error: 'Profesional no encontrado'
         });
       }
 
-      const fotoUrlNueva = `/uploads/${req.file.filename}`;
+      let fotoUrlNueva = null;
+
+      if (req.file) {
+        fotoUrlNueva = `/uploads/${req.file.filename}`;
+      } else if (req.body && req.body.foto) {
+        const resultado = await guardarFotoBase64(req.profesional.id, req.body.foto);
+        fotoUrlNueva = resultado.fotoUrl;
+      } else {
+        return res.status(400).json({
+          error: 'Debes seleccionar una imagen para subir'
+        });
+      }
 
       await pool.query(
         `UPDATE profesionales
@@ -198,11 +251,26 @@ router.post('/foto', (req, res) => {
         await eliminarFotoDelDisco(`/uploads/${req.file.filename}`);
       }
 
-      return res.status(500).json({
-        error: 'No se pudo actualizar la foto de perfil'
+      return res.status(400).json({
+        error: error.message || 'No se pudo actualizar la foto de perfil'
       });
     }
-  });
+  };
+
+  if (req.is('multipart/form-data')) {
+    upload.single('foto')(req, res, async (uploadError) => {
+      if (uploadError) {
+        return res.status(400).json({
+          error: uploadError.message || 'No se pudo subir la foto'
+        });
+      }
+
+      return procesarSolicitud();
+    });
+    return;
+  }
+
+  procesarSolicitud();
 });
 
 // DELETE /perfil/foto

@@ -75,20 +75,22 @@ async function cambiarPassword(token, passwordActual, passwordNuevo) {
   }
 }
 
-// Sube la foto como FormData porque el backend espera multipart/form-data.
-// No se define Content-Type manualmente para que el navegador agregue el boundary correcto.
-async function subirFotoPerfil(token, archivo) {
+// Sube la foto en JSON para que el frontend pueda enviar el Base64 del archivo.
+// El backend acepta tanto este payload como el multipart/form-data anterior.
+async function subirFotoPerfil(token, fotoBase64) {
   if (isDemoMode()) {
     return subirDemoFoto();
   }
 
   try {
-    const formData = new FormData();
-    formData.append('foto', archivo);
-
     return await hacerRequest('/perfil/foto', token, {
       method: 'POST',
-      body: formData
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        foto: fotoBase64
+      })
     });
   } catch (error) {
     throw error;
