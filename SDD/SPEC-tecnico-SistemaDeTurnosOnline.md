@@ -38,6 +38,7 @@ Existe ademas un modo demo local que reemplaza llamadas al backend por datos en 
 - `src/vue-components`
 - `src/layouts`
 - `src/styles`
+- `src/demoData.js`
 
 ### 4.2 `panel-admin`
 
@@ -98,7 +99,7 @@ Existe ademas un modo demo local que reemplaza llamadas al backend por datos en 
 
 ### 6.3 Estrategia de datos demo
 
-- `panel-admin/src/ArchivosJS/demoData.js` contiene el estado mock.
+- `panel-admin/src/ArchivosJS/demoData.js` contiene el estado mock del panel.
 - `sitio-publico/src/demoData.js` contiene los datos demo del sitio publico.
 - Las APIs del panel y del sitio desvían a datos locales cuando la demo esta activa.
 
@@ -107,6 +108,7 @@ Existe ademas un modo demo local que reemplaza llamadas al backend por datos en 
 ### 7.1 Panel admin
 
 - `/`
+- `/turnos`
 - `/login`
 - `/register`
 - `/onboarding`
@@ -121,6 +123,7 @@ Existe ademas un modo demo local que reemplaza llamadas al backend por datos en 
 - `/buscar`
 - `/:slug`
 - `/tu-necesidad`
+- `/404`
 
 ## 8. API backend
 
@@ -132,42 +135,48 @@ Existe ademas un modo demo local que reemplaza llamadas al backend por datos en 
 
 ### 8.2 Perfil
 
-- `GET /perfil`
 - `PUT /perfil`
 - `PUT /perfil/password`
 - `POST /perfil/foto`
 - `DELETE /perfil/foto`
 
-### 8.3 Servicios
+Nota: `PUT /perfil` devuelve el perfil actual incluso cuando no recibe campos para actualizar, y por eso tambien se usa como lectura segura desde el panel.
+
+### 8.3 Onboarding
+
+- `GET /onboarding/estado`
+- `POST /onboarding/completar`
+
+### 8.4 Servicios
 
 - `GET /servicios`
 - `POST /servicios`
 - `PUT /servicios/:id`
 - `DELETE /servicios/:id`
 
-### 8.4 Disponibilidad
+### 8.5 Disponibilidad
 
 - `GET /disponibilidad`
 - `POST /disponibilidad`
 - `DELETE /disponibilidad/:id`
 
-### 8.5 Dias bloqueados
+### 8.6 Dias bloqueados
 
 - `GET /dias-bloqueados`
 - `POST /dias-bloqueados`
 - `DELETE /dias-bloqueados/:id`
 
-### 8.6 Turnos
+### 8.7 Turnos
 
 - `GET /turnos`
 - `PUT /turnos/:id/estado`
 
-### 8.7 Metricas
+### 8.8 Metricas
 
 - `GET /metricas/resumen`
 - `GET /metricas/proximos`
 
-### 8.8 Publico
+### 8.9 Publico
 
 - `GET /publico/:slug`
 - `GET /publico/:slug/servicios`
@@ -175,6 +184,8 @@ Existe ademas un modo demo local que reemplaza llamadas al backend por datos en 
 - `GET /publico/:slug/turnos-ocupados`
 - `POST /publico/turnos`
 - `GET /busqueda`
+
+Nota: `GET /publico/:slug/turnos-ocupados` requiere el parametro `fecha` en la query y devuelve ocupacion o bloqueo para esa fecha.
 
 ## 9. Variables de entorno
 
@@ -187,6 +198,8 @@ Existe ademas un modo demo local que reemplaza llamadas al backend por datos en 
 - `DB_PASSWORD`
 - `DB_NAME`
 - `JWT_SECRET`
+- `FRONTEND_URL`
+- `SITIO_URL`
 - `EMAIL_HOST`
 - `EMAIL_PORT`
 - `EMAIL_USER`
@@ -201,6 +214,7 @@ Existe ademas un modo demo local que reemplaza llamadas al backend por datos en 
 ### 9.3 Sitio publico
 
 - `API_URL`
+- `PUBLIC_API_URL`
 
 ## 10. Despliegue local
 
@@ -236,4 +250,4 @@ El panel admin y el sitio publico pueden probarse en modo demo aun sin levantar 
 - Las utilidades de almacenamiento deben tolerar `localStorage` no disponible.
 - El dashboard debe poder montar sin depender de Docker.
 - La demo debe producir una experiencia equivalente al flujo real, aunque con datos mock.
-
+- Las notificaciones por email no deben bloquear la operacion principal si la configuracion no existe.

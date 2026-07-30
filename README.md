@@ -1,247 +1,300 @@
 # SistemaDeTurnosOnline
 
-Sistema web de reserva de turnos para profesionales independientes (peluqueros, psicólogos, odontólogos, masajistas, etc.).
+Sistema web de reserva de turnos para profesionales independientes. El proyecto combina:
 
-El cliente final reserva un turno desde una página pública sin necesidad de crear una cuenta. El profesional gestiona sus turnos, servicios y horarios desde un panel privado.
+- Sitio publico en Astro con una experiencia de busqueda y reserva
+- Panel administrativo en Vue 3 + Pinia
+- Backend en Node.js + Express
+- Base de datos MySQL
+- Entorno Docker Compose para levantar todo el stack
 
----
+El estado actual del proyecto contempla dos formas de uso:
 
-## Tecnologías
+1. Modo real con Docker, usando backend y MySQL.
+2. Modo demo sin Docker, para revisar la interfaz y el flujo academico sin depender de servicios externos.
 
-| Capa | Tecnología |
-|---|---|
-| Páginas públicas | [Astro](https://astro.build) — HTML estático con carga ultrarrápida |
-| Componentes interactivos | [Vue.js](https://vuejs.org) — islas reactivas dentro de Astro (microfrontend) |
-| Panel de administración | Vue.js SPA — Vue Router + Pinia + Composables |
-| Backend | Node.js + Express.js + JWT |
-| Base de datos | MySQL 8 |
-| Entorno | Docker Compose |
+## Estado actual
 
-> **Patrón microfrontend:** Astro genera las páginas públicas como HTML estático. Vue se incrusta solo donde hace falta interactividad, usando la directiva `client:load`. Esto combina el SEO y la velocidad de Astro con la reactividad de Vue.
+- El sitio publico funciona en modo real y en modo demo.
+- El panel admin funciona en modo real y en modo demo.
+- La base de datos del contenedor Docker es independiente de la MySQL local de Windows.
+- El login de demo usa credenciales de prueba y no requiere Docker.
 
----
+## Credenciales de demo
 
-## Estructura del proyecto
+Usar estas credenciales cuando el modo demo este activo:
 
-```
-SistemaDeTurnosOnline/
-├── sitio-publico/          # Astro — lo que ve el cliente final
-│   └── src/
-│       ├── pages/          # [slug].astro — página dinámica por profesional
-│       ├── vue-components/ # FormReserva.vue — isla interactiva de reserva
-│       └── layouts/
-│
-├── panel-admin/            # Vue SPA — lo que ve el profesional
-│   └── src/
-│       ├── ArchivosJS/
-│       │   └── api/        # funciones fetch al backend (una por entidad)
-│       └── ArchivosVue/
-│           ├── pages/      # Dashboard, Servicios, Disponibilidad, Perfil, Métricas
-│           ├── stores/     # authStore.js (Pinia)
-│           ├── composables/ # useAuth.js, useTheme.js
-│           ├── components/ # NavBar, MetricaCard, ThemeToggle
-│           └── router/     # Vue Router con guardia de auth
-│
-├── backend/                # Node.js + Express
-│   ├── routes/             # auth, servicios, disponibilidad, turnos, perfil, metricas, publico
-│   ├── middleware/         # authMiddleware.js
-│   ├── utils/              # email.js (Nodemailer)
-│   └── db/                 # connection.js (pool MySQL)
-│
-├── database/
-│   └── schema.sql          # tablas: profesionales, servicios, disponibilidad, turnos, dias_bloqueados
-│
-├── SDD/                    # Documentación: SPECs y prompts de desarrollo
-└── docker-compose.yml
-```
+- Email: `maria@test.com`
+- Contraseña: `12345`
 
----
+Para activar demo en el panel:
 
-## Levantar el proyecto
+- `http://localhost:5173/login?demo=1`
 
-### Requisitos previos
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y corriendo
+Para activar demo en el sitio publico:
+
+- `http://localhost:4321/?demo=1`
+- `http://localhost:4321/tu-necesidad?demo=1`
+- `http://localhost:4321/buscar?q=Maria&demo=1`
+- `http://localhost:4321/maria-garcia?demo=1`
+
+## URLs locales
+
+### Con Docker
+
+- Sitio publico: `http://localhost:4321`
+- Panel admin: `http://localhost:5173`
+- Backend: `http://localhost:4000`
+- Health check backend: `http://localhost:4000/health`
+- MySQL: `localhost:3306`
+
+### Sin Docker
+
+Si levantaste cada app por separado en tu maquina:
+
+- Sitio publico: `http://127.0.0.1:4321`
+- Panel admin: `http://127.0.0.1:5173` o el puerto disponible que indique Vite
+- Backend: `http://127.0.0.1:4000`
+
+## Requisitos
+
+### Para correr con Docker
+
+- Docker Desktop instalado y en ejecucion
 - Puertos `4000`, `4321`, `5173` y `3306` disponibles
 
-### Pasos
+### Para correr sin Docker
+
+- Node.js instalado en cada subproyecto
+- npm instalado
+- Backend configurado si queres usar modo real
+
+## Como levantar el proyecto con Docker
 
 ```bash
-# 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/SistemaDeTurnosOnline.git
-cd SistemaDeTurnosOnline
-
-# 2. Configurar variables de entorno
-cp backend/.env.example backend/.env
-# Editar backend/.env con tus valores (JWT_SECRET, credenciales de email, etc.)
-
-# 3. Levantar todos los servicios
 docker compose up -d
+```
 
-# 4. Verificar que todo esté corriendo
+Verificar contenedores:
+
+```bash
 docker compose ps
 ```
 
-| Servicio | URL |
-|---|---|
-| Sitio público (Astro) | http://localhost:4321 |
-| Panel admin (Vue) | http://localhost:5173 |
-| API backend | http://localhost:4000 |
-| MySQL | localhost:3306 |
+Detener el stack:
 
 ```bash
-# Detener
 docker compose down
+```
 
-# Detener y eliminar datos (resetear DB)
+Detener y borrar datos de la base de datos del contenedor:
+
+```bash
 docker compose down -v
 ```
 
----
+## Como correr la demo sin Docker
 
-## Deploy en producción
+La demo no depende del backend real para las pantallas principales.
 
-El proyecto está preparado para deployarse con:
-- **Railway** — backend Node.js + MySQL
-- **Vercel** — sitio público (Astro) + panel admin (Vue)
+### Panel admin
 
-Ver instrucciones detalladas en:
-- `deploy/instrucciones-railway.md`
-- `deploy/instrucciones-vercel.md`
+1. Ir a `panel-admin`
+2. Ejecutar:
 
-### URLs de producción
+```bash
+npm install
+npm run dev
+```
 
-Una vez deployado, actualizar estos valores:
+3. Abrir:
 
-| Servicio | URL |
-|---|---|
-| Sitio público | https://[tu-proyecto].vercel.app |
-| Panel admin | https://[tu-panel].vercel.app |
-| API backend | https://[tu-backend].railway.app |
+```text
+http://localhost:5173/login?demo=1
+```
 
----
+### Sitio publico
+
+1. Ir a `sitio-publico`
+2. Ejecutar:
+
+```bash
+npm install
+npm run dev
+```
+
+3. Abrir una URL con `demo=1`, por ejemplo:
+
+```text
+http://localhost:4321/?demo=1
+```
 
 ## Variables de entorno
 
-Copiar `backend/.env.example` a `backend/.env` y completar:
+### Backend
+
+Copiar `backend/.env.example` a `backend/.env`.
 
 ```env
 PORT=4000
 DB_HOST=db
+DB_PORT=3306
 DB_USER=turnos_user
 DB_PASSWORD=turnos_password
 DB_NAME=turnos_db
 JWT_SECRET=cambiar_por_clave_segura
 
-# Email (opcional — requiere contraseña de aplicación de Gmail)
+# URLs de los frontends permitidos por CORS
+FRONTEND_URL=http://localhost:5173
+SITIO_URL=http://localhost:4321
+
+# Email opcional
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=tucuenta@gmail.com
-EMAIL_PASS=contraseña_de_aplicacion
+EMAIL_PASS=contrasena_de_aplicacion_gmail
 EMAIL_FROM=SistemaDeTurnos <tucuenta@gmail.com>
 ```
 
-> Si las variables de email no están configuradas, el sistema funciona normalmente. El fallo de email nunca interrumpe el flujo de reserva.
+Si las variables de email no estan configuradas, el sistema sigue funcionando y solo se omiten los envios.
 
----
+### Panel admin
 
-## Funcionalidades
+Copiar `panel-admin/.env.example` a `panel-admin/.env`:
 
-### Sitio público (cliente final)
-- Página pública por profesional: `/:slug` (ej: `/maria-garcia`)
-- Ver servicios, duración y precio
-- Seleccionar fecha y ver horarios disponibles en tiempo real
-- Reservar turno sin necesidad de crear cuenta
-- Detección automática de días bloqueados por el profesional
-- Confirmación por email al reservar (si está configurado)
-- Dark mode · Diseño responsive mobile
+```env
+VITE_API_URL=URL_del_backend_en_Railway_o_http://localhost:4000
+VITE_SITIO_PUBLICO_URL=http://localhost:4321
+```
 
-### Panel de administración (profesional)
-- Registro y login con JWT
-- Dashboard con turnos del día y métricas rápidas del mes
-- Confirmar o cancelar turnos
-- Gestión de servicios (crear, editar, desactivar)
-- Configuración de horarios de atención por día de la semana
-- Bloqueo de fechas específicas (feriados, vacaciones)
-- Página de métricas: turnos del mes, ingresos estimados, próximos turnos
-- Edición de perfil (nombre, especialidad, descripción, dirección)
+### Sitio publico
+
+Copiar `sitio-publico/.env.example` a `sitio-publico/.env`:
+
+```env
+API_URL=http://backend:4000
+PUBLIC_API_URL=http://localhost:4000
+```
+
+## Estructura del proyecto
+
+```text
+SistemaDeTurnosOnline/
+├── sitio-publico/          Sitio publico en Astro + Vue
+├── panel-admin/            Panel administrativo en Vue 3 + Pinia
+├── backend/                API REST en Node.js + Express
+├── database/               Schema SQL inicial
+├── deploy/                 Instrucciones de despliegue
+├── SDD/                    Documentacion tecnica y prompts
+└── docker-compose.yml      Orquestacion local
+```
+
+## Funcionalidades principales
+
+### Sitio publico
+
+- Busqueda de profesionales
+- Perfil publico por slug
+- Reserva de turnos
+- Seleccion de fecha, horario y modalidad
+- Modo demo para pruebas academicas
+
+### Panel admin
+
+- Registro e inicio de sesion
+- Dashboard con agenda y resumen
+- Gestion de servicios
+- Gestion de disponibilidad
+- Bloqueo de dias
+- Edicion de perfil
 - Cambio de contraseña
-- Dark mode · Diseño responsive mobile
+- Metricas basicas
+- Modo demo sin backend real
 
----
+## API principal
 
-## API — endpoints principales
+### Autenticacion
 
-```
-POST   /auth/register          Registro de profesional
-POST   /auth/login             Login → JWT
-GET    /auth/me                Datos del profesional logueado
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /auth/me`
 
-GET    /servicios              Listar servicios propios
-POST   /servicios              Crear servicio
-PUT    /servicios/:id          Editar servicio
-DELETE /servicios/:id          Desactivar servicio
+### Servicios
 
-GET    /disponibilidad         Ver horarios de atención
-POST   /disponibilidad         Agregar bloque horario
-DELETE /disponibilidad/:id     Eliminar bloque
+- `GET /servicios`
+- `POST /servicios`
+- `PUT /servicios/:id`
+- `DELETE /servicios/:id`
 
-GET    /turnos                 Ver turnos (filtros: fecha, estado, servicio, rango)
-PUT    /turnos/:id/estado      Cambiar estado del turno
+### Disponibilidad
 
-GET    /perfil                 —
-PUT    /perfil                 Actualizar datos de perfil
-PUT    /perfil/password        Cambiar contraseña
+- `GET /disponibilidad`
+- `POST /disponibilidad`
+- `DELETE /disponibilidad/:id`
 
-GET    /metricas/resumen       Métricas del mes actual
-GET    /metricas/proximos      Próximos 5 turnos confirmados
+### Turnos
 
-GET    /dias-bloqueados        Ver fechas bloqueadas
-POST   /dias-bloqueados        Bloquear una fecha
-DELETE /dias-bloqueados/:id    Desbloquear
+- `GET /turnos`
+- `PUT /turnos/:id/estado`
 
-── Rutas públicas (sin auth) ──────────────────────────────────
-GET    /publico/:slug                        Datos del profesional
-GET    /publico/:slug/servicios              Servicios activos
-GET    /publico/:slug/disponibilidad         Horarios de atención
-GET    /publico/:slug/turnos-ocupados        Horarios ocupados por fecha
-POST   /publico/turnos                       Crear reserva
-```
+### Perfil
 
-> Todas las rutas excepto `/auth/register`, `/auth/login` y `/publico/*` requieren header `Authorization: Bearer <token>`
+- `GET /perfil`
+- `PUT /perfil`
+- `PUT /perfil/password`
 
----
+### Metricas
+
+- `GET /metricas/resumen`
+- `GET /metricas/proximos`
+
+### Dias bloqueados
+
+- `GET /dias-bloqueados`
+- `POST /dias-bloqueados`
+- `DELETE /dias-bloqueados/:id`
+
+### Publico
+
+- `GET /publico/:slug`
+- `GET /publico/:slug/servicios`
+- `GET /publico/:slug/disponibilidad`
+- `GET /publico/:slug/turnos-ocupados`
+- `POST /publico/turnos`
 
 ## Base de datos
 
-```
-profesionales  1──N  servicios
-profesionales  1──N  disponibilidad
-profesionales  1──N  dias_bloqueados
-profesionales  1──N  turnos
-turnos         N──1  servicios
-```
+Tablas principales:
 
-El schema completo está en `database/schema.sql` y se aplica automáticamente al levantar el contenedor MySQL por primera vez.
+- `profesionales`
+- `servicios`
+- `disponibilidad`
+- `turnos`
+- `dias_bloqueados`
 
----
+El schema esta en `database/schema.sql` y se aplica automaticamente cuando el contenedor MySQL se inicializa por primera vez.
 
-## Decisiones técnicas
+Importante:
 
-- **Microfrontend con Astro + Vue:** Astro para SEO y velocidad en páginas públicas. Vue como isla interactiva solo donde hace falta reactividad (formulario de reserva).
-- **Pinia sobre Vuex:** store oficial de Vue 3, más simple y con mejor soporte de TypeScript si se migra en el futuro.
-- **JWT en localStorage:** solución directa para SPA. En producción evaluar cookies HttpOnly.
-- **slug generado automáticamente:** desde el nombre del profesional al registrarse, sin input manual.
-- **Fallo silencioso en emails:** el error de Nodemailer se loguea pero nunca interrumpe la respuesta al cliente.
-- **Sin TypeScript:** proyecto educativo — JavaScript puro para mantener el foco en los conceptos de stack.
+- El volumen `mysql_data` guarda la base de datos del contenedor.
+- Eso no borra tu MySQL local de Windows.
+- El puerto `3306` puede generar conflicto si ya tenes otro MySQL corriendo en la maquina.
 
----
+## Despliegue
 
-## Capturas
+El proyecto tambien tiene guias separadas para produccion:
 
-> *Agregar capturas de pantalla del sitio público y del panel admin una vez desplegado.*
+- `deploy/instrucciones-railway.md`
+- `deploy/instrucciones-vercel.md`
 
----
+## Notas tecnicas
+
+- Astro se usa para las paginas publicas.
+- Vue se usa para las islas interactivas y para el panel admin.
+- Pinia centraliza la sesion del profesional.
+- JWT se guarda en `localStorage` para simplificar la SPA.
+- El envio de email es opcional y no interrumpe el flujo si falta configuracion.
 
 ## Autor
 
-Proyecto desarrollado como trabajo práctico integrando Vue.js, Astro (microfrontend), Node.js y MySQL con entorno Docker.
+Proyecto academico desarrollado como sistema de turnos online para profesionales independientes.

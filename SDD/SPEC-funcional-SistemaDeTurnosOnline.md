@@ -22,10 +22,11 @@ El proyecto cubre tres experiencias:
 
 El sitio publico permite:
 
-- Buscar profesionales por nombre o especialidad.
+- Buscar profesionales por nombre, especialidad o texto libre.
 - Ver una ficha publica por profesional.
-- Consultar servicios, horarios y dias bloqueados.
+- Consultar servicios, horarios y cobertura geografica.
 - Reservar turnos en forma directa.
+- Ver la experiencia de reserva respetando dias bloqueados y disponibilidad real.
 - Recibir una confirmacion visual de la reserva.
 
 ### 2.2 Panel admin
@@ -33,6 +34,7 @@ El sitio publico permite:
 El panel admin permite al profesional:
 
 - Iniciar sesion.
+- Registrarse.
 - Ver turnos del dia y metricas resumidas.
 - Confirmar o cancelar turnos.
 - Crear, editar o desactivar servicios.
@@ -40,6 +42,7 @@ El panel admin permite al profesional:
 - Bloquear dias especificos.
 - Editar su perfil.
 - Cambiar su contrasena.
+- Gestionar foto de perfil.
 - Ver metricas de actividad.
 - Completar un onboarding inicial cuando corresponda.
 
@@ -51,6 +54,7 @@ El modo demo sirve para probar el sistema completo sin infraestructura externa.
 - Se persiste en `localStorage`.
 - Usa datos simulados en memoria.
 - Permite probar login, dashboard, servicios, disponibilidad, perfil, metricas y reservas.
+- Mantiene el flujo funcional incluso si el backend o Docker no estan disponibles.
 
 ## 3. Roles de usuario
 
@@ -64,13 +68,15 @@ Persona que administra su agenda, sus servicios y su informacion publica.
 
 ## 4. Reglas de negocio
 
-- Un profesional debe tener perfil, servicios y disponibilidad basica para quedar operativo.
-- El flujo del sistema privilegia la modalidad `a domicilio` y `ir al local`.
-- El sitio esta pensado para profesionales de una ciudad concreta y alrededores, no para cobertura nacional.
+- Un profesional debe tener perfil, al menos un servicio y disponibilidad basica para quedar operativo.
+- El panel puede exigir onboarding antes de habilitar el acceso completo.
+- El cliente final no necesita crear una cuenta para reservar.
 - Un turno pertenece a un unico profesional.
 - Los turnos pueden estar en estado `pendiente`, `confirmado` o `cancelado`.
 - Si una fecha esta bloqueada, no se debe ofrecer disponibilidad para reservar.
 - El profesional puede atender en local, a domicilio o ambas modalidades, segun cada servicio.
+- La reserva debe respetar la modalidad disponible del servicio elegido.
+- El envio de email es opcional: si falta configuracion, el flujo principal no se bloquea.
 
 ## 5. Experiencia funcional principal
 
@@ -80,7 +86,7 @@ Persona que administra su agenda, sus servicios y su informacion publica.
 2. Busca un profesional.
 3. Abre la ficha publica.
 4. Revisa servicios y horarios.
-5. Selecciona fecha y modalidad.
+5. Selecciona fecha, modalidad y horario.
 6. Completa sus datos.
 7. Confirma la reserva.
 

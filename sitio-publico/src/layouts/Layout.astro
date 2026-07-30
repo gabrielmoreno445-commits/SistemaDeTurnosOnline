@@ -16,16 +16,16 @@ const esActivo = (href) => pathname === href || (href !== '/' && pathname.starts
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- TODO (Producción): reinstalar una fuente externa solo si se sirve desde un CDN aprobado
+         o si la tipografía queda alojada localmente dentro del proyecto. -->
     <title>{title}</title>
     <script is:inline>
-      const tema = localStorage.getItem('tema') || 'light';
-      document.documentElement.setAttribute('data-theme', tema);
+      try {
+        const tema = localStorage.getItem('tema') || 'light';
+        document.documentElement.setAttribute('data-theme', tema);
+      } catch {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
     </script>
   </head>
   <body>
@@ -71,8 +71,16 @@ const esActivo = (href) => pathname === href || (href !== '/' && pathname.starts
         btn.addEventListener('click', () => {
           const actual = document.documentElement.getAttribute('data-theme');
           const nuevo = actual === 'dark' ? 'light' : 'dark';
+
           document.documentElement.setAttribute('data-theme', nuevo);
-          localStorage.setItem('tema', nuevo);
+
+          try {
+            localStorage.setItem('tema', nuevo);
+          } catch {
+            // TODO (Producción): persistir el tema en una capa de configuración segura si
+            // el navegador bloquea storage local.
+          }
+
           actualizarTextoTema(btn, nuevo);
         });
       });
